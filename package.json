@@ -1,0 +1,29 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "To make it easy for you to get started with GitLab, here's a list of recommended next steps.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon src/index.js", "start": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/jala-university1/cohort-3/ES.CSSD-245.GA.T2.25.M2/SB/group-1/backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://gitlab.com/jala-university1/cohort-3/ES.CSSD-245.GA.T2.25.M2/SB/group-1/backend/issues"
+  },
+  "homepage": "https://gitlab.com/jala-university1/cohort-3/ES.CSSD-245.GA.T2.25.M2/SB/group-1/backend#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
