@@ -1,27 +1,35 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import { connectDB } from './infrastructure/database/index.js';
 
 const app = express();
 
 // Config
-const PORT = process.env.PORT || 3000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
+const PORT = process.env.PORT || 3000;
 
 // Middlewares
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
+app.use(helmet());
+app.use(morgan('dev'));
 
 // Rutas
-const healthRouter = require('./routes/health.routes');
-app.use('/health', healthRouter);
 
 // Root
 app.get('/', (req, res) => {
   res.json({ name: 'QATU API', version: '1.0.0' });
 });
 
-// Start
-app.listen(PORT, () => {
-  console.log("API listening on http://localhost:" + PORT);
+// Connect to database and then start the server
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`API listening on http://localhost:${PORT}`);
+  });
+}).catch(error => {
+  console.error('Failed to connect to the database:', error);
+  process.exit(1);
 });
