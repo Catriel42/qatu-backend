@@ -8,6 +8,7 @@ export default {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: 'postgres',
+    schema: process.env.DB_SCHEMA,
   },
   test: {
     username: process.env.DB_USER,
@@ -16,6 +17,7 @@ export default {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: 'postgres',
+    schema: process.env.DB_SCHEMA,
   },
   production: {
     username: process.env.DB_USER,
@@ -24,5 +26,6 @@ export default {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: 'postgres',
+    schema: process.env.DB_SCHEMA,
   },
 };
