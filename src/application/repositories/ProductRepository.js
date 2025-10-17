@@ -1,14 +1,9 @@
+import { Op } from 'sequelize';
 import db from '../../domain/models/index.js';
 
-const { Product, ProductImage } = db;
+const { Product, ProductImage, Store } = db;
 
 class ProductRepository {
-  /**
-   * Creates a new product in the database.
-   * @param {object} productData - The data for the new product.
-   * @param {Array<string>} imageUrls - An array of image URLs for the product.
-   * @returns {Promise<Product>} The created product instance.
-   */
   async create(productData, imageUrls = []) {
     const transaction = await db.sequelize.transaction();
     try {
@@ -19,19 +14,65 @@ class ProductRepository {
           productId: product.id,
           imageUrl: url,
           displayOrder: index,
-          isPrimary: index === 0, // Mark the first image as primary
+          isPrimary: index === 0,
         }));
         await ProductImage.bulkCreate(images, { transaction });
       }
 
       await transaction.commit();
-      
-      // Return the product with its images
       return Product.findByPk(product.id, { include: ['images'] });
     } catch (error) {
       await transaction.rollback();
       throw error;
     }
+  }
+
+  async listBySeller(
+    sellerId,
+    {
+      page = 1,
+      pageSize = 20,
+      status = 'active',
+      q,
+      categoryId,
+      sort = 'created_at:desc',
+    } = {}
+  ) {
+    const limit = Number(pageSize);
+    const offset = (Number(page) - 1) * limit;
+
+    const [sortFieldRaw, sortDirRaw] = String(sort).split(':');
+    const sortField = sortFieldRaw || 'created_at';
+    const sortDir = (String(sortDirRaw || 'desc').toUpperCase() === 'ASC' ? 'ASC' : 'DESC');
+
+    const where = {};
+    if (status) where.status = status;
+    if (categoryId) where.category_id = categoryId;
+    if (q) where.name = { [Op.iLike]: `%${q}%` };
+
+    const { rows, count } = await Product.findAndCountAll({
+      where,
+      include: [
+        {
+          model: Store,
+          as: 'store',
+          attributes: ['id', 'name'],
+          where: { seller_id: sellerId },
+          required: true,
+        },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'image_url', 'display_order', 'is_primary'],
+        },
+      ],
+      order: [[sortField, sortDir]],
+      limit,
+      offset,
+      distinct: true,
+    });
+
+    return { rows, count };
   }
 }
 
