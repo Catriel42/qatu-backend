@@ -1,4 +1,4 @@
-import ProductRepository from '../../infrastructure/database/repositories/ProductRepository.js';
+import ProductRepository from '../repositories/ProductRepository.js';
 
 class PublishProduct {
   constructor() {
