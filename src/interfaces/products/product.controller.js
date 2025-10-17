@@ -1,20 +1,29 @@
 import PublishProduct from '../../application/use-cases/PublishProduct.js';
+import ListMyProducts from '../../application/use-cases/ListMyProducts.js';
 
 class ProductController {
   async create(req, res, next) {
     try {
-      const productData = req.body;
-      // In a real-world scenario, the storeId should be derived from the
-      // authenticated user's session or token to ensure they can only publish
-      // to their own store. For now, we'll use the one from the request body.
-      // e.g., productData.storeId = req.user.storeId;
+      const result = await PublishProduct.execute({ body: req.body, user: req.user });
+      res.status(201).json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
 
-      const newProduct = await PublishProduct.execute(productData);
-      
-      res.status(201).json(newProduct);
-    } catch (error) {
-      // A more sophisticated error-handling middleware, maybe monads, could be used here.
-      next(error);
+  // US-008: View My Products
+  async listMine(req, res, next) {
+    try {
+      const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
+      if (!sellerId) return res.status(401).json({ message: 'Unauthorized' });
+
+      const result = await ListMyProducts.execute({
+        sellerId,
+        query: req.query,
+      });
+      res.json(result);
+    } catch (err) {
+      next(err);
     }
   }
 }

@@ -1,3 +1,4 @@
+// src/domain/models/index.js
 import { sequelize } from '../../infrastructure/database/index.js';
 import User from './User.js';
 import Store from './Store.js';
@@ -5,26 +6,27 @@ import Category from './Category.js';
 import Product from './Product.js';
 import ProductImage from './ProductImage.js';
 
-const models = {
-  User,
-  Store,
-  Category,
-  Product,
-  ProductImage,
-};
+const models = { User, Store, Category, Product, ProductImage };
 
-// Define associations
-// User has one Store
-User.hasOne(Store, {
+/**
+ * Associations (según tu ERD):
+ * users (id) 1---* stores (seller_id)
+ * stores (id) 1---* products (store_id)
+ * categories (id) 1---* products (category_id)
+ * products (id) 1---* product_images (product_id)
+ */
+
+// User 1..* Store (seller)
+User.hasMany(Store, {
   foreignKey: 'sellerId',
-  as: 'store',
+  as: 'stores',
 });
 Store.belongsTo(User, {
   foreignKey: 'sellerId',
   as: 'seller',
 });
 
-// Store has many Products
+// Store 1..* Product
 Store.hasMany(Product, {
   foreignKey: 'storeId',
   as: 'products',
@@ -34,7 +36,7 @@ Product.belongsTo(Store, {
   as: 'store',
 });
 
-// Category has many Products
+// Category 1..* Product
 Category.hasMany(Product, {
   foreignKey: 'categoryId',
   as: 'products',
@@ -44,17 +46,7 @@ Product.belongsTo(Category, {
   as: 'category',
 });
 
-// Category has a self-referencing association for sub-categories
-Category.hasMany(Category, {
-  foreignKey: 'parentId',
-  as: 'subCategories',
-});
-Category.belongsTo(Category, {
-  foreignKey: 'parentId',
-  as: 'parentCategory',
-});
-
-// Product has many ProductImages
+// Product 1..* ProductImage
 Product.hasMany(ProductImage, {
   foreignKey: 'productId',
   as: 'images',
@@ -64,10 +56,5 @@ ProductImage.belongsTo(Product, {
   as: 'product',
 });
 
-
-const db = {
-  ...models,
-  sequelize,
-};
-
+const db = { ...models, sequelize };
 export default db;
