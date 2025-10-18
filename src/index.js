@@ -36,7 +36,7 @@ export default app;
 if (process.env.NODE_ENV !== 'test') {
   (async () => {
     try {
-      await connectDB({ sync: false });
+      await connectDB({ sync: true });
       app.listen(PORT, () => {
         console.log(`API listening on http://localhost:${PORT}`);
       });
