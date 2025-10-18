@@ -39,6 +39,14 @@ Store.init({
     type: DataTypes.STRING(500),
     allowNull: true,
   },
+  shippingPolicy: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
+  returnPolicy: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
   address: {
     type: DataTypes.TEXT,
     allowNull: true,

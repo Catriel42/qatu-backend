@@ -1,7 +1,8 @@
 -- USERS
 insert into users (id, iam_id, email, full_name, role, is_active, email_verified, created_at, updated_at)
 values
-('11111111-1111-1111-1111-111111111111', 'seller-iam', 'seller@example.com', 'Seller Demo', 'seller', true, true, now(), now())
+('11111111-1111-1111-1111-111111111111', 'seller-iam', 'seller@example.com', 'Seller Demo', 'seller', true, true, now(), now()),
+('77777777-7777-7777-7777-777777777777', 'frontend-seller-iam', 'frontend-seller@example.com', 'Frontend Seller', 'seller', true, true, now(), now())
 on conflict (id) do nothing;
 
 -- STORES 

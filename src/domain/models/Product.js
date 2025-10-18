@@ -57,7 +57,7 @@ Product.init({
     allowNull: true,
   },
   status: {
-    type: DataTypes.ENUM('active', 'paused', 'deleted'),
+    type: DataTypes.ENUM('active', 'paused', 'draft', 'archived', 'deleted'),
     defaultValue: 'active',
   },
   isFeatured: {

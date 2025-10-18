@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { connectDB } from './infrastructure/database/index.js';
 import productRouter from './interfaces/products/product.router.js';
+import storeRouter from './interfaces/stores/store.router.js';
 import { devAuth } from './interfaces/middlewares/dev-auth.middleware.js';
 
 const app = express();
@@ -19,6 +20,7 @@ app.use(morgan('dev'));
 app.use(devAuth);
 
 app.use('/api/products', productRouter);
+app.use('/api/stores', storeRouter);
 
 app.get('/', (_req, res) => {
   res.json({ name: 'QATU API', version: '1.0.0' });
@@ -34,7 +36,7 @@ export default app;
 if (process.env.NODE_ENV !== 'test') {
   (async () => {
     try {
-      await connectDB({ sync: false });
+      await connectDB({ sync: true });
       app.listen(PORT, () => {
         console.log(`API listening on http://localhost:${PORT}`);
       });
