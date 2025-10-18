@@ -89,5 +89,14 @@ export async function connectDB(opts = {}) {
   }
 }
 
+export async function disconnectDB() {
+  try {
+    await sequelize.close();
+    console.log('✅ Database connection closed');
+  } catch (err) {
+    console.error('❌ Error closing the database connection:', err);
+    throw err;
+  }
+}
+
 export { sequelize };
-export default sequelize;
