@@ -44,14 +44,11 @@ class StoreController {
         if (files.logo[0].size > MAX_LOGO_SIZE) return res.status(400).json({ message: 'Logo file too large (max 1MB).' });
         payload.logoUrl = `/uploads/store-assets/${files.logo[0].filename}`;
       }
-      if (err.name === 'ConflictError') {
-        return res.status(409).json({ message: err.message }); // 409 Conflict
-
       if (files.banner?.[0]) {
         if (files.banner[0].size > MAX_BANNER_SIZE) return res.status(400).json({ message: 'Banner file too large (max 5MB).' });
         payload.bannerUrl = `/uploads/store-assets/${files.banner[0].filename}`;
-        }
       }
+
       const updated = await UpdateStore.execute({ sellerId, storeId: id, payload });
       res.json(updated);
     } catch (err) {
