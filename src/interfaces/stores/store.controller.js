@@ -1,48 +1,62 @@
 import SetUpStore from '../../application/use-cases/SetUpStore.js';
+import UpdateStore from '../../application/use-cases/UpdateStore.js';
 import multer from 'multer';
 
-const MAX_LOGO_SIZE = 1 * 1024 * 1024; // 1MB
-const MAX_BANNER_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_LOGO_SIZE = 1 * 1024 * 1024;
+const MAX_BANNER_SIZE = 5 * 1024 * 1024;
 
 class StoreController {
-  // US-012: Set Up My Store
   async create(req, res, next) {
     try {
-      // In a real application, this would come from a JWT or session.
       const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
-      if (!sellerId) {
-        return res.status(401).json({ message: 'Unauthorized: Seller ID is missing.' });
+      if (!sellerId) return res.status(401).json({ message: 'Unauthorized' });
+
+      const files = req.files || {};
+      const body = { ...req.body, sellerId };
+
+      if (files.logo?.[0]) {
+        if (files.logo[0].size > MAX_LOGO_SIZE) return res.status(400).json({ message: 'Logo file too large (max 1MB).' });
+        body.logoUrl = `/uploads/store-assets/${files.logo[0].filename}`;
+      }
+      if (files.banner?.[0]) {
+        if (files.banner[0].size > MAX_BANNER_SIZE) return res.status(400).json({ message: 'Banner file too large (max 5MB).' });
+        body.bannerUrl = `/uploads/store-assets/${files.banner[0].filename}`;
       }
 
-      // Check file sizes
-      if (req.files?.logo && req.files.logo[0].size > MAX_LOGO_SIZE) {
-        return res.status(400).json({ message: 'Logo file size exceeds the limit of 1MB.' });
-      }
-      if (req.files?.banner && req.files.banner[0].size > MAX_BANNER_SIZE) {
-        return res.status(400).json({ message: 'Banner file size exceeds the limit of 5MB.' });
-      }
-
-      const storeData = {
-        ...req.body,
-        sellerId, // Add sellerId to the data object
-        logoUrl: req.files?.logo ? `/uploads/store-assets/${req.files.logo[0].filename}` : null,
-        bannerUrl: req.files?.banner ? `/uploads/store-assets/${req.files.banner[0].filename}` : null,
-      };
-
-      const result = await SetUpStore.execute(storeData);
-      
-      res.status(201).json({
-        message: 'Store set up successfully!',
-        store: result,
-      });
-
+      const store = await SetUpStore.execute(body);
+      res.status(201).json(store);
     } catch (err) {
-      if (err instanceof multer.MulterError) {
-        return res.status(400).json({ message: err.message });
+      if (err instanceof multer.MulterError) return res.status(400).json({ message: err.message });
+      next(err);
+    }
+  }
+
+  async update(req, res, next) {
+    try {
+      const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
+      if (!sellerId) return res.status(401).json({ message: 'Unauthorized' });
+
+      const { id } = req.params;
+      const files = req.files || {};
+      const payload = { ...req.body };
+
+      if (files.logo?.[0]) {
+        if (files.logo[0].size > MAX_LOGO_SIZE) return res.status(400).json({ message: 'Logo file too large (max 1MB).' });
+        payload.logoUrl = `/uploads/store-assets/${files.logo[0].filename}`;
       }
       if (err.name === 'ConflictError') {
         return res.status(409).json({ message: err.message }); // 409 Conflict
+
+      if (files.banner?.[0]) {
+        if (files.banner[0].size > MAX_BANNER_SIZE) return res.status(400).json({ message: 'Banner file too large (max 5MB).' });
+        payload.bannerUrl = `/uploads/store-assets/${files.banner[0].filename}`;
+        }
       }
+      const updated = await UpdateStore.execute({ sellerId, storeId: id, payload });
+      res.json(updated);
+    } catch (err) {
+      if (err.code === 'DUPLICATE_NAME') return res.status(409).json({ message: err.message });
+      if (err.status) return res.status(err.status).json({ message: err.message });
       next(err);
     }
   }

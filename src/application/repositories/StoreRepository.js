@@ -1,31 +1,24 @@
 import db from '../../domain/models/index.js';
+import { Op } from 'sequelize';
 
 const { Store } = db;
 
 class StoreRepository {
-  /**
-   * Creates a new store in the database.
-   * @param {object} storeData - The data for the new store.
-   * @returns {Promise<Store>} The created store instance.
-   */
-  async create(storeData) {
-    try {
-      const store = await Store.create(storeData);
-      return store;
-    } catch (error) {
-      // In a real app, you'd want to handle specific DB errors
-      console.error('Error creating store in repository:', error);
-      throw new Error('Could not create store.');
-    }
+  async findById(id) {
+    return Store.findByPk(id);
   }
 
-  /**
-   * Finds a store by its seller's ID.
-   * @param {string} sellerId - The ID of the seller.
-   * @returns {Promise<Store|null>} The store instance if found, otherwise null.
-   */
-  async findBySellerId(sellerId) {
-    return Store.findOne({ where: { sellerId } });
+  async isNameTaken(name, excludeStoreId = null) {
+    const where = excludeStoreId
+      ? { name, id: { [Op.ne]: excludeStoreId } }
+      : { name };
+    const found = await Store.findOne({ where });
+    return !!found;
+  }
+
+  async updateById(id, payload) {
+    await Store.update(payload, { where: { id } });
+    return this.findById(id);
   }
 }
 
