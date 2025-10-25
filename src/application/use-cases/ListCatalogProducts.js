@@ -4,7 +4,8 @@ class ListCatalogProducts {
   async execute(query) {
     const page = Math.max(1, Number(query.page || 1));
     const pageSize = Math.min(100, Math.max(1, Number(query.pageSize || 24)));
-
+    const sort = query.sort; 
+    
     const filters = {
       q: query.q,
       categoryId: query.categoryId,
@@ -14,7 +15,7 @@ class ListCatalogProducts {
     };
 
     const { rows, count } = await ProductRepository.listPublic({
-      page, pageSize, ...filters
+      page, pageSize, ...filters, sort
     });
 
     return {
