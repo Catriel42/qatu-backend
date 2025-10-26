@@ -74,6 +74,34 @@ class ProductRepository {
 
     return { rows, count };
   }
+
+  async findById(productId, sellerId) {
+    return Product.findOne({
+      where: {
+        id: productId,
+        status: { [Op.ne]: 'deleted' },
+      },
+      include: [
+        {
+          model: Store,
+          as: 'store',
+          where: { seller_id: sellerId },
+          attributes: [],
+        },
+      ],
+    });
+  }
+
+  async deleteById(productId) {
+    const product = await Product.findByPk(productId);
+
+    if (product) {
+      product.status = 'deleted';
+      await product.save();
+    }
+
+    return product;
+  }
 }
 
 export default new ProductRepository();

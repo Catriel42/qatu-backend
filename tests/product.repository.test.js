@@ -54,3 +54,42 @@ describe('ProductRepository.listBySeller', () => {
     expect(prices).toEqual(sorted);
   });
 });
+
+describe('ProductRepository.findById', () => {
+  const sellerId = 'a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1';
+  const storeId = 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2';
+  let productId;
+
+  beforeAll(async () => {
+    await User.create({ id: sellerId, iamId: sellerId, fullName: 'Find Test Seller', email: 'find-seller@test.com', password: 'password', role: 'seller' });
+    await Store.create({ id: storeId, sellerId, name: 'Find Test Store', slug: 'find-test-store' });
+    const product = await Product.create({ name: 'Findable Product', description: 'A product to find', price: 100, storeId, status: 'active' });
+    productId = product.id;
+  });
+
+  afterAll(async () => {
+    await Product.destroy({ where: { storeId } });
+    await Store.destroy({ where: { id: storeId } });
+    await User.destroy({ where: { id: sellerId } });
+  });
+
+  it('debe encontrar un producto por su ID y el ID del vendedor', async () => {
+    const foundProduct = await ProductRepository.findById(productId, sellerId);
+    expect(foundProduct).toBeDefined();
+    expect(foundProduct.id).toBe(productId);
+  });
+
+  it('debe devolver null si el producto no existe', async () => {
+    const nonExistentProductId = 'c3c3c3c3-c3c3-c3c3-c3c3-c3c3c3c3c3c3';
+    const foundProduct = await ProductRepository.findById(nonExistentProductId, sellerId);
+    expect(foundProduct).toBeNull();
+  });
+
+  it('debe devolver null si el producto no pertenece al vendedor', async () => {
+    const otherSellerId = 'd4d4d4d4-d4d4-d4d4-d4d4-d4d4d4d4d4d4';
+    await User.create({ id: otherSellerId, iamId: otherSellerId, fullName: 'Other Seller', email: 'other-seller@test.com', password: 'password', role: 'seller' });
+    const foundProduct = await ProductRepository.findById(productId, otherSellerId);
+    expect(foundProduct).toBeNull();
+    await User.destroy({ where: { id: otherSellerId } });
+  });
+});

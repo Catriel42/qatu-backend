@@ -11,4 +11,6 @@ router.get('/mine', ProductController.listMine);
 // Crear producto 
 router.post('/', validate(createProductSchema), ProductController.create);
 
+router.delete('/:id', ProductController.deleteProduct);
+
 export default router;

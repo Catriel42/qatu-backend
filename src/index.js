@@ -28,7 +28,8 @@ app.get('/', (_req, res) => {
 
 app.use((err, _req, res, _next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something broke!', error: err.message });
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({ message: err.message || 'Something broke!' });
 });
 
 export default app;

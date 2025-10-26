@@ -1,10 +1,14 @@
 import PublishProduct from '../../application/use-cases/PublishProduct.js';
 import ListMyProducts from '../../application/use-cases/ListMyProducts.js';
+import DeleteProduct from '../../application/use-cases/DeleteProduct.js';
 
 class ProductController {
   async create(req, res, next) {
     try {
-      const result = await PublishProduct.execute({ body: req.body, user: req.user });
+      const userId = req.user?.id; // Assuming req.user is populated by authentication middleware
+      if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+      const result = await PublishProduct.execute({ ...req.body, userId });
       res.status(201).json(result);
     } catch (err) {
       next(err);
@@ -22,6 +26,19 @@ class ProductController {
         query: req.query,
       });
       res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async deleteProduct(req, res, next) {
+    try {
+      const { id: productId } = req.params;
+      const sellerId = req.user?.id;
+
+      await DeleteProduct.execute(productId, sellerId);
+
+      res.status(204).send();
     } catch (err) {
       next(err);
     }
