@@ -8,6 +8,9 @@ const router = Router();
 // US-008: View My Products
 router.get('/mine', ProductController.listMine);
 
+// US-016: Search Products by Keyword
+router.get('/search', ProductController.search);
+
 // Crear producto 
 router.post('/', validate(createProductSchema), ProductController.create);
 
