@@ -91,18 +91,58 @@ class ProductRepository {
       include: [
         {
           model: Store,
-          as: 'store',
+          as: 'store', 
           attributes: ['id', 'name'],
-          where: { seller_id: sellerId },
+          where: { seller_id: sellerId }, 
           required: true,
         },
         {
           model: ProductImage,
-          as: 'images',
+          as: 'images', 
           attributes: ['id', 'image_url', 'display_order', 'is_primary'],
         },
       ],
       order: [[sortField, sortDir]],
+      limit,
+      offset,
+      distinct: true, 
+    });
+
+    return { rows, count };
+  }
+
+  async listPublic({
+    page = 1, 
+    pageSize = 20, 
+    q,
+    categoryId,
+    minPrice,
+    maxPrice,
+    minRating
+  } = {}) {
+    const limit = Number(pageSize);
+    const offset = (Number(page) - 1) * limit;
+
+    const where = { status: 'active' }; 
+
+    if (q) where.name = { [Op.iLike]: `%${q}%` };
+    if (categoryId) where.category_id = categoryId;
+    
+    if (minPrice != null || maxPrice != null) {
+        where.price = {};
+        if (minPrice != null) where.price[Op.gte] = minPrice;
+        if (maxPrice != null) where.price[Op.lte] = maxPrice;
+    }
+    
+    if (minRating != null) where.average_rating = { [Op.gte]: minRating };
+
+    const { rows, count } = await Product.findAndCountAll({
+      where,
+      include: [
+        { model: ProductImage, as: 'images', attributes: ['id', 'image_url', 'display_order', 'is_primary'] },
+        { model: Store, as: 'store', attributes: ['id', 'name'] },
+      ],
+      order: [['created_at', 'DESC']],
       limit,
       offset,
       distinct: true,
