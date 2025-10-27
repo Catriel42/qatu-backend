@@ -11,7 +11,7 @@ describe('Product API', () => {
   const storeId2 = '44444444-4444-4444-4444-444444444444';
   let product1;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await User.bulkCreate([
       { id: sellerId1, iamId: sellerId1, fullName: 'Test Seller 1', email: 'seller1@test.com', password: 'password', role: 'seller' },
       { id: sellerId2, iamId: sellerId2, fullName: 'Test Seller 2', email: 'seller2@test.com', password: 'password', role: 'seller' },
@@ -67,7 +67,7 @@ describe('Product API', () => {
         .delete(`/api/products/${product1.id}`)
         .set('x-dev-seller-id', sellerId2);
 
-      expect(res.status).toBe(404);
+      expect(res.status).toBe(403);
     });
   });
 });

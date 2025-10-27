@@ -7,7 +7,7 @@ const { User, Store, Product, Category } = db;
 describe('DELETE /api/products/:id', () => {
   let seller1, seller2, store1, category1, product1, product2;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     // Clean up
     await Product.destroy({ where: {}, truncate: true, cascade: true });
     await Store.destroy({ where: {}, truncate: true, cascade: true });
