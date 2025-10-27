@@ -14,4 +14,7 @@ router.get('/search', ProductController.search);
 // Crear producto 
 router.post('/', validate(createProductSchema), ProductController.create);
 
+// Delete Product
+router.delete('/:id', ProductController.delete);
+
 export default router;

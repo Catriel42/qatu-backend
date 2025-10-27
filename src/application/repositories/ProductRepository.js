@@ -27,6 +27,27 @@ class ProductRepository {
     }
   }
 
+  async findById(productId) {
+    return Product.findByPk(productId, {
+      include: [
+        {
+          model: Store,
+          as: 'store',
+          attributes: ['id', 'sellerId'],
+        },
+      ],
+    });
+  }
+
+  async updateStatus(productId, status) {
+    const product = await Product.findByPk(productId);
+    if (product) {
+      product.status = status;
+      await product.save();
+    }
+    return product;
+  }
+
   async listBySeller(
     sellerId,
     {
