@@ -5,7 +5,7 @@ export const createProductSchema = Joi.object({
   description: Joi.string().min(10).required(),
   price: Joi.number().positive().precision(2).required(),
   stock: Joi.number().integer().min(0).required(),
-  storeId: Joi.string().uuid().required(),
+  storeId: Joi.string().uuid().optional(),
   categoryId: Joi.string().uuid().allow(null).optional(), // allow null for optional categories
   imageUrls: Joi.array().items(Joi.string().uri()).optional().max(5), // Max 5 images
 });

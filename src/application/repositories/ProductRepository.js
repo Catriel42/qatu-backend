@@ -96,6 +96,44 @@ class ProductRepository {
     return { rows, count };
   }
 
+  async findById(productId, sellerId) {
+    return Product.findOne({
+      where: {
+        id: productId,
+        status: { [Op.ne]: 'deleted' },
+      },
+      include: [
+        {
+          model: Store,
+          as: 'store',
+          where: { seller_id: sellerId },
+          attributes: [],
+        },
+      ],
+    });
+  }
+
+  async deleteById(productId, sellerId) {
+    const product = await Product.findOne({
+      where: { id: productId },
+      include: [
+        {
+          model: Store,
+          as: 'store',
+          where: { seller_id: sellerId },
+          required: true,
+        },
+      ],
+    });
+
+    if (product) {
+      product.status = 'deleted';
+      await product.save();
+    }
+
+    return product;
+  }
+
   async search(q, { page = 1, pageSize = 20, sort = 'created_at:desc' } = {}) {
     const limit = Number(pageSize);
     const offset = (Number(page) - 1) * limit;
