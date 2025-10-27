@@ -6,7 +6,7 @@ import SearchProducts from '../../application/use-cases/SearchProducts.js';
 class ProductController {
   async create(req, res, next) {
     try {
-      const result = await PublishProduct.execute({ body: req.body, user: req.user });
+      const result = await PublishProduct.execute(req.body);
       res.status(201).json(result);
     } catch (err) {
       next(err);
@@ -28,6 +28,7 @@ class ProductController {
     }
   }
 
+  // US-016: Search Products by Keyword
   async search(req, res, next) {
     try {
       const { q, ...query } = req.query;
