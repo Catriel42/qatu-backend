@@ -3,6 +3,7 @@ import ListMyProducts from '../../application/use-cases/ListMyProducts.js';
 import DeleteProduct from '../../application/use-cases/DeleteProduct.js';
 import SearchProducts from '../../application/use-cases/SearchProducts.js';
 import ListCatalogProducts from '../../application/use-cases/ListCatalogProducts.js';
+import GetProductDetails from '../../application/use-cases/GetProductDetails.js';
 
 class ProductController {
   async create(req, res, next) {
@@ -41,6 +42,15 @@ class ProductController {
       const { q, ...query } = req.query;
       const result = await SearchProducts.execute({ q, query });
       res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getById(req, res, next) {
+    try {
+      const result = await GetProductDetails.execute({ productId: req.params.id });
+      res.status(200).json(result);
     } catch (err) {
       next(err);
     }
