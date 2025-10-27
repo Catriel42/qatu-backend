@@ -2,6 +2,7 @@ import PublishProduct from '../../application/use-cases/PublishProduct.js';
 import ListMyProducts from '../../application/use-cases/ListMyProducts.js';
 import DeleteProduct from '../../application/use-cases/DeleteProduct.js';
 import SearchProducts from '../../application/use-cases/SearchProducts.js';
+import ListCatalogProducts from '../../application/use-cases/ListCatalogProducts.js';
 
 class ProductController {
   async create(req, res, next) {
@@ -18,10 +19,16 @@ class ProductController {
       const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
       if (!sellerId) return res.status(401).json({ message: 'Unauthorized' });
 
-      const result = await ListMyProducts.execute({
-        sellerId,
-        query: req.query,
-      });
+      const result = await ListMyProducts.execute({ sellerId, query: req.query });
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async listPublic(req, res, next) {
+    try {
+      const result = await ListCatalogProducts.execute(req.query);
       res.json(result);
     } catch (err) {
       next(err);
