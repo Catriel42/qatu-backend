@@ -12,7 +12,8 @@ const env = {
   DB_NAME: clean(process.env.DB_NAME),
   DB_USER: clean(process.env.DB_USER),
   DB_PASSWORD: clean(process.env.DB_PASSWORD),
-  DB_SSL: clean(process.env.DB_SSL), // e.g. "require" para Supabase
+  DB_SSL: clean(process.env.DB_SSL),
+  DB_SCHEMA: clean(process.env.DB_SCHEMA) || 'public', 
 };
 
 const useUrl = !!env.DATABASE_URL && /^postgres(ql)?:\/\//i.test(env.DATABASE_URL);
@@ -24,19 +25,19 @@ console.log('[DB CONFIG]', {
   db: useUrl ? '(from DATABASE_URL)' : env.DB_NAME,
   user: useUrl ? '(from DATABASE_URL)' : env.DB_USER,
   ssl: env.DB_SSL || (useUrl ? 'require' : undefined),
+  schema: env.DB_SCHEMA, 
 });
 
 const commonOptions = {
   logging: false,
   dialect: env.DB_DIALECT,
+  define: {
+    schema: env.DB_SCHEMA, 
+  },
 };
 
 let sequelize;
 
-/**
- * Siempre usamos el constructor con OBJETO para evitar que Sequelize
- * intente parsear una connection string cuando algo viene undefined.
- */
 if (useUrl) {
   const url = new URL(env.DATABASE_URL);
   const database = url.pathname?.replace(/^\//, '') || 'postgres';
@@ -70,21 +71,17 @@ if (useUrl) {
   });
 }
 
-/**
- * Conecta y sincroniza modelos.
- * @param {{ sync?: boolean, force?: boolean, alter?: boolean }} opts
- */
 export async function connectDB(opts = {}) {
   const { sync = false, force = false, alter = false } = opts;
   try {
     await sequelize.authenticate();
-    console.log('✅ Database connection established');
+    console.log('Database connection established');
     if (sync) {
       await sequelize.sync({ force, alter });
-      console.log(`✅ Models synchronized (force=${!!force}, alter=${!!alter})`);
+      console.log(`Models synchronized (force=${!!force}, alter=${!!alter})`);
     }
   } catch (err) {
-    console.error('❌ Unable to connect to the database:', err);
+    console.error('Unable to connect to the database:', err);
     throw err;
   }
 }

@@ -44,17 +44,7 @@ class ProductRepository {
     }
   }
 
-  async findById(productId) {
-    return Product.findByPk(productId, {
-      include: [
-        {
-          model: Store,
-          as: 'store',
-          attributes: ['id', 'sellerId'],
-        },
-      ],
-    });
-  }
+
 
   async updateStatus(productId, status) {
     const product = await Product.findByPk(productId);
@@ -111,45 +101,25 @@ class ProductRepository {
     return { rows, count };
   }
 
-  async listPublic({
-    page = 1, 
-    pageSize = 20, 
-    q,
-    categoryId,
-    minPrice,
-    maxPrice,
-    minRating
-  } = {}) {
-    const limit = Number(pageSize);
-    const offset = (Number(page) - 1) * limit;
-
-    const where = { status: 'active' }; 
-
-    if (q) where.name = { [Op.iLike]: `%${q}%` };
-    if (categoryId) where.category_id = categoryId;
-    
-    if (minPrice != null || maxPrice != null) {
-        where.price = {};
-        if (minPrice != null) where.price[Op.gte] = minPrice;
-        if (maxPrice != null) where.price[Op.lte] = maxPrice;
-    }
-    
-    if (minRating != null) where.average_rating = { [Op.gte]: minRating };
-
-    const { rows, count } = await Product.findAndCountAll({
-      where,
+  async findById(productId) {
+    return Product.findByPk(productId, {
       include: [
-        { model: ProductImage, as: 'images', attributes: ['id', 'image_url', 'display_order', 'is_primary'] },
-        { model: Store, as: 'store', attributes: ['id', 'name'] },
+        {
+          model: Store,
+          as: 'store',
+          attributes: ['id', 'name', 'logo_url'],
+        },
+        {
+          model: ProductImage,
+          as: 'images',
+          attributes: ['id', 'image_url', 'display_order'],
+          order: [['display_order', 'ASC']],
+        },
       ],
-      order: [['created_at', 'DESC']],
-      limit,
-      offset,
-      distinct: true,
     });
-
-    return { rows, count };
   }
+
+
 
   async listPublic({
     page = 1,

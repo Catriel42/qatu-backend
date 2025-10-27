@@ -9,3 +9,7 @@ export const createProductSchema = Joi.object({
   categoryId: Joi.string().uuid().allow(null).optional(), // allow null for optional categories
   imageUrls: Joi.array().items(Joi.string().uri()).optional().max(5), // Max 5 images
 });
+
+export const getProductDetailsSchema = Joi.object({
+  id: Joi.string().uuid().required(),
+});
