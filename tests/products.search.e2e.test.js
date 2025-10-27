@@ -10,7 +10,7 @@ describe('GET /api/products/search', () => {
   const categoryId1 = '99999999-9999-9999-9999-999999999991';
   const categoryId2 = '99999999-9999-9999-9999-999999999992';
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await User.create({ id: sellerId, iamId: sellerId, fullName: 'Search Test Seller', email: 'search-seller@test.com', role: 'seller' });
     await Store.create({ id: storeId, sellerId, name: 'Search Test Store', slug: 'search-test-store' });
     await Category.create({ id: categoryId1, name: 'Electronics', slug: 'electronics' });

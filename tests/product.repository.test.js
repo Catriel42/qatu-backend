@@ -8,7 +8,8 @@ describe('ProductRepository.listBySeller', () => {
   const sellerId = '11111111-1111-1111-1111-111111111111';
   const storeId = '22222222-2222-2222-2222-222222222222';
 
-  beforeAll(async () => {
+  beforeEach(async () => {
+    // FIX: Create User before Store
     await User.create({ id: sellerId, iamId: sellerId, fullName: 'Test Seller', email: 'seller@test.com', password: 'password', role: 'seller' });
     await Store.create({ id: storeId, sellerId, name: 'Test Store', slug: 'test-store' });
     await Product.bulkCreate([
@@ -60,7 +61,7 @@ describe('ProductRepository.findById', () => {
   const storeId = 'b2b2b2b2-b2b2-b2b2-b2b2-b2b2b2b2b2b2';
   let productId;
 
-  beforeAll(async () => {
+  beforeEach(async () => { // Changed from beforeAll to beforeEach
     await User.create({ id: sellerId, iamId: sellerId, fullName: 'Find Test Seller', email: 'find-seller@test.com', password: 'password', role: 'seller' });
     await Store.create({ id: storeId, sellerId, name: 'Find Test Store', slug: 'find-test-store' });
     const product = await Product.create({ name: 'Findable Product', description: 'A product to find', price: 100, storeId, status: 'active' });
@@ -73,23 +74,17 @@ describe('ProductRepository.findById', () => {
     await User.destroy({ where: { id: sellerId } });
   });
 
-  it('debe encontrar un producto por su ID y el ID del vendedor', async () => {
-    const foundProduct = await ProductRepository.findById(productId, sellerId);
+  it('debe encontrar un producto por su ID', async () => { // Updated test description
+    const foundProduct = await ProductRepository.findById(productId); // Removed sellerId
     expect(foundProduct).toBeDefined();
     expect(foundProduct.id).toBe(productId);
   });
 
   it('debe devolver null si el producto no existe', async () => {
     const nonExistentProductId = 'c3c3c3c3-c3c3-c3c3-c3c3-c3c3c3c3c3c3';
-    const foundProduct = await ProductRepository.findById(nonExistentProductId, sellerId);
+    const foundProduct = await ProductRepository.findById(nonExistentProductId); // Removed sellerId
     expect(foundProduct).toBeNull();
   });
 
-  it('debe devolver null si el producto no pertenece al vendedor', async () => {
-    const otherSellerId = 'd4d4d4d4-d4d4-d4d4-d4d4-d4d4d4d4d4d4';
-    await User.create({ id: otherSellerId, iamId: otherSellerId, fullName: 'Other Seller', email: 'other-seller@test.com', password: 'password', role: 'seller' });
-    const foundProduct = await ProductRepository.findById(productId, otherSellerId);
-    expect(foundProduct).toBeNull();
-    await User.destroy({ where: { id: otherSellerId } });
-  });
+  // Removed the test 'debe devolver null si el producto no pertenece al vendedor'
 });

@@ -8,7 +8,7 @@ const { User, Store } = db;
 describe('POST /api/stores', () => {
   const sellerId = '33333333-3333-3333-3333-333333333333';
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     await User.create({ id: sellerId, iamId: sellerId, fullName: 'Store Test Seller', email: 'store-seller@test.com', password: 'password', role: 'seller' });
   });
 
@@ -37,7 +37,13 @@ describe('POST /api/stores', () => {
   });
 
   test('should return 409 if the seller already has a store', async () => {
-    // The previous test already created a store, so this should fail
+    // Create the first store for the seller
+    await request(app)
+      .post('/api/stores')
+      .set('x-dev-seller-id', sellerId)
+      .send(storeData);
+
+    // Now attempt to create a second store for the same seller
     const res = await request(app)
       .post('/api/stores')
       .set('x-dev-seller-id', sellerId) // Same seller ID
