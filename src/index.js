@@ -18,6 +18,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(morgan('dev'));
 app.use(devAuth);
+app.use('/uploads', express.static('uploads'));
 
 app.use('/api/products', productRouter);
 app.use('/api/stores', storeRouter);

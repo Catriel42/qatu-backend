@@ -1,6 +1,7 @@
 import PublishProduct from '../../application/use-cases/PublishProduct.js';
 import ListMyProducts from '../../application/use-cases/ListMyProducts.js';
 import DeleteProduct from '../../application/use-cases/DeleteProduct.js';
+import SearchProducts from '../../application/use-cases/SearchProducts.js';
 
 class ProductController {
   async create(req, res, next) {
@@ -25,6 +26,17 @@ class ProductController {
         sellerId,
         query: req.query,
       });
+      res.json(result);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  // US-016: Search Products by Keyword
+  async search(req, res, next) {
+    try {
+      const { q, ...query } = req.query;
+      const result = await SearchProducts.execute({ q, query });
       res.json(result);
     } catch (err) {
       next(err);
