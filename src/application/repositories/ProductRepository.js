@@ -92,8 +92,18 @@ class ProductRepository {
     });
   }
 
-  async deleteById(productId) {
-    const product = await Product.findByPk(productId);
+  async deleteById(productId, sellerId) {
+    const product = await Product.findOne({
+      where: { id: productId },
+      include: [
+        {
+          model: Store,
+          as: 'store',
+          where: { seller_id: sellerId },
+          required: true,
+        },
+      ],
+    });
 
     if (product) {
       product.status = 'deleted';
