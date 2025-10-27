@@ -40,8 +40,7 @@ class StoreController {
       if (err instanceof multer.MulterError) {
         return res.status(400).json({ message: err.message });
       }
-      // Custom error handling
-      if (err.message === 'Seller already has a store.') {
+      if (err.name === 'ConflictError') {
         return res.status(409).json({ message: err.message }); // 409 Conflict
       }
       next(err);

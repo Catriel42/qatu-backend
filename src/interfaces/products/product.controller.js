@@ -6,17 +6,13 @@ import SearchProducts from '../../application/use-cases/SearchProducts.js';
 class ProductController {
   async create(req, res, next) {
     try {
-      const userId = req.user?.id; // Assuming req.user is populated by authentication middleware
-      if (!userId) return res.status(401).json({ message: 'Unauthorized' });
-
-      const result = await PublishProduct.execute({ ...req.body, userId });
+      const result = await PublishProduct.execute(req.body);
       res.status(201).json(result);
     } catch (err) {
       next(err);
     }
   }
 
-  // US-008: View My Products
   async listMine(req, res, next) {
     try {
       const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
@@ -43,15 +39,23 @@ class ProductController {
     }
   }
 
-  async deleteProduct(req, res, next) {
+  async delete(req, res, next) {
     try {
+      const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
+      if (!sellerId) return res.status(401).json({ message: 'Unauthorized' });
+
       const { id: productId } = req.params;
-      const sellerId = req.user?.id;
 
-      await DeleteProduct.execute(productId, sellerId);
+      await DeleteProduct.execute({ productId, sellerId });
 
-      res.status(204).send();
+      res.status(204).send(); // 204 No Content
     } catch (err) {
+      if (err.name === 'NotFoundError') {
+        return res.status(404).json({ message: err.message });
+      }
+      if (err.name === 'ForbiddenError') {
+        return res.status(403).json({ message: err.message });
+      }
       next(err);
     }
   }
