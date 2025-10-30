@@ -8,7 +8,12 @@ import GetProductDetails from '../../application/use-cases/GetProductDetails.js'
 class ProductController {
   async create(req, res, next) {
     try {
-      const result = await PublishProduct.execute(req.body);
+      const userId = req.user?.id || req.headers['x-dev-seller-id'];
+      if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+      const imageUrls = req.files ? req.files.map(file => `/uploads/product-assets/${file.filename}`) : [];
+
+      const result = await PublishProduct.execute({ ...req.body, userId, imageUrls });
       res.status(201).json(result);
     } catch (err) {
       next(err);
