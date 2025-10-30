@@ -8,6 +8,14 @@ class StoreRepository {
     return Store.findByPk(id);
   }
 
+  async findBySellerId(sellerId) {
+    return Store.findOne({ where: { sellerId: sellerId } });
+  }
+
+  async create(storeData) {
+    return Store.create(storeData);
+  }
+
   async isNameTaken(name, excludeStoreId = null) {
     const where = excludeStoreId
       ? { name, id: { [Op.ne]: excludeStoreId } }
