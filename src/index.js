@@ -7,7 +7,7 @@ import { connectDB } from './infrastructure/database/index.js';
 import productRouter from './interfaces/products/product.router.js';
 import storeRouter from './interfaces/stores/store.router.js';
 import userRouter from './interfaces/users/user.router.js';
-import { devAuth } from './interfaces/middlewares/dev-auth.middleware.js';
+import sellerRequestRouter from './interfaces/seller-requests/seller-request.router.js';
 
 const app = express();
 
@@ -18,12 +18,12 @@ app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(morgan('dev'));
-app.use(devAuth);
 app.use('/uploads', express.static('uploads'));
 
 app.use('/api/products', productRouter);
 app.use('/api/stores', storeRouter);
 app.use('/api/users', userRouter);
+app.use('/api/seller-requests', sellerRequestRouter);
 
 app.get('/', (_req, res) => {
   res.json({ name: 'QATU API', version: '1.0.0' });

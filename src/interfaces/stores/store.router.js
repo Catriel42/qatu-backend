@@ -2,6 +2,7 @@ import { Router } from 'express';
 import StoreController from './store.controller.js';
 import { validate } from '../middlewares/validator.middleware.js';
 import { createStoreSchema, updateStoreSchema } from './store.validator.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -23,6 +24,7 @@ const router = Router();
 
 router.post(
   '/',
+  authenticate,
   upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]),
   validate(createStoreSchema),
   StoreController.create
@@ -30,6 +32,7 @@ router.post(
 
 router.patch(
   '/:id',
+  authenticate,
   upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]),
   validate(updateStoreSchema),
   StoreController.update

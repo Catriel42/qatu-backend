@@ -8,8 +8,7 @@ const MAX_BANNER_SIZE = 5 * 1024 * 1024;
 class StoreController {
   async create(req, res, next) {
     try {
-      const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
-      if (!sellerId) return res.status(401).json({ message: 'Unauthorized' });
+      const sellerId = req.user.id;
 
       const files = req.files || {};
       const body = { ...req.body, sellerId };
@@ -33,8 +32,7 @@ class StoreController {
 
   async update(req, res, next) {
     try {
-      const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
-      if (!sellerId) return res.status(401).json({ message: 'Unauthorized' });
+      const sellerId = req.user.id;
 
       const { id } = req.params;
       const files = req.files || {};

@@ -1,13 +1,16 @@
 import { Router } from 'express';
 import UserController from './user.controller.js';
-import { validate } from '../middlewares/validator.middleware.js';
-import { createUserSchema } from './user.validator.js';
+import { verifyToken } from '../middlewares/verify-token.middleware.js';
+import { authenticate } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
+// Get the currently authenticated user's profile
+router.get('/me', authenticate, UserController.getMe);
+
 router.post(
   '/',
-  validate(createUserSchema),
+  verifyToken,
   UserController.create
 );
 

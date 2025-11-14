@@ -5,12 +5,14 @@ import Store from './Store.js';
 import Category from './Category.js';
 import Product from './Product.js';
 import ProductImage from './ProductImage.js';
+import SellerRequest from './SellerRequest.js';
 
-const models = { User, Store, Category, Product, ProductImage };
+const models = { User, Store, Category, Product, ProductImage, SellerRequest };
 
 /**
  * Associations (según tu ERD):
  * users (id) 1---* stores (seller_id)
+ * users (id) 1---* seller_requests (user_id)
  * stores (id) 1---* products (store_id)
  * categories (id) 1---* products (category_id)
  * products (id) 1---* product_images (product_id)
@@ -21,6 +23,17 @@ User.hasMany(Store, {
   foreignKey: 'sellerId',
   as: 'stores',
 });
+
+// User 1..* SellerRequest
+User.hasMany(SellerRequest, {
+  foreignKey: 'userId',
+  as: 'sellerRequests',
+});
+SellerRequest.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user',
+});
+
 Store.belongsTo(User, {
   foreignKey: 'sellerId',
   as: 'seller',

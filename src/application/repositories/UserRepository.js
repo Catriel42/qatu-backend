@@ -7,8 +7,17 @@ class UserRepository {
     return User.create(userData);
   }
 
+  async findById(id) {
+    return User.findByPk(id);
+  }
+
   async findByIamId(iamId) {
-    return User.findOne({ where: { iamId } });
+    // Fix: Use the correct snake_case column name
+    return User.findOne({ where: { iam_id: iamId } });
+  }
+
+  async findByColumn(column, value) {
+    return User.findOne({ where: { [column]: value } });
   }
 }
 

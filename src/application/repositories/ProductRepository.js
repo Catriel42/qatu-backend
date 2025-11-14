@@ -66,14 +66,19 @@ class ProductRepository {
       sort = 'created_at:desc',
     } = {}
   ) {
+    const store = await Store.findOne({ where: { sellerId } });
+    if (!store) {
+      return { rows: [], count: 0 };
+    }
+
     const limit = Number(pageSize);
     const offset = (Number(page) - 1) * limit;
 
     const [sortField, sortDir] = parseSort(sort, 'created_at:desc');
 
-    const where = {};
+    const where = { storeId: store.id };
     if (status) where.status = status;
-    if (categoryId) where.category_id = categoryId;
+    if (categoryId) where.categoryId = categoryId;
     if (q) where.name = { [Op.iLike]: `%${q}%` };
 
     const { rows, count } = await Product.findAndCountAll({
@@ -81,21 +86,19 @@ class ProductRepository {
       include: [
         {
           model: Store,
-          as: 'store', 
+          as: 'store',
           attributes: ['id', 'name'],
-          where: { seller_id: sellerId }, 
-          required: true,
         },
         {
           model: ProductImage,
-          as: 'images', 
+          as: 'images',
           attributes: ['id', 'image_url', 'display_order', 'is_primary'],
         },
       ],
       order: [[sortField, sortDir]],
       limit,
       offset,
-      distinct: true, 
+      distinct: true,
     });
 
     return { rows, count };
