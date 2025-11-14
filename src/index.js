@@ -8,6 +8,7 @@ import productRouter from './interfaces/products/product.router.js';
 import storeRouter from './interfaces/stores/store.router.js';
 import userRouter from './interfaces/users/user.router.js';
 import sellerRequestRouter from './interfaces/seller-requests/seller-request.router.js';
+import { deserializeJsonApi } from './interfaces/middlewares/jsonapi.middleware.js';
 
 const app = express();
 
@@ -16,6 +17,20 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
+app.use(deserializeJsonApi); // Deserialize JSON:API requests
+
+// Middleware to log all JSON responses for debugging
+app.use((req, res, next) => {
+  const originalJson = res.json;
+  res.json = function(data) {
+    console.log('--- API RESPONSE BODY ---');
+    console.log(JSON.stringify(data, null, 2));
+    console.log('-------------------------');
+    originalJson.apply(res, arguments);
+  };
+  next();
+});
+
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
@@ -32,7 +47,16 @@ app.get('/', (_req, res) => {
 app.use((err, _req, res, _next) => {
   console.error(err.stack);
   const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({ message: err.message || 'Something broke!' });
+  const errorResponse = {
+    errors: [
+      {
+        status: statusCode.toString(),
+        title: err.name || 'Error',
+        detail: err.message || 'Something broke!',
+      },
+    ],
+  };
+  res.status(statusCode).json(errorResponse);
 });
 
 export default app;

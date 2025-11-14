@@ -1,10 +1,11 @@
 import admin from 'firebase-admin';
+import { AuthenticationError } from '../../domain/errors/httpErrors.js';
 
 export const verifyToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'No token provided or invalid format.' });
+      throw new AuthenticationError('No token provided or invalid format.');
     }
 
     const idToken = authHeader.split('Bearer ')[1];
@@ -15,8 +16,11 @@ export const verifyToken = async (req, res, next) => {
   } catch (error) {
     console.error('Error during token verification:', error);
     if (error.code === 'auth/id-token-expired') {
-      return res.status(401).json({ message: 'Authentication token expired.' });
+      return next(new AuthenticationError('Authentication token expired.'));
     }
-    return res.status(401).json({ message: 'Authentication failed.' });
+    if (error instanceof AuthenticationError) {
+      return next(error);
+    }
+    return next(new AuthenticationError('Authentication failed.'));
   }
 };

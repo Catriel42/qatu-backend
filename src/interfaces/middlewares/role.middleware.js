@@ -1,10 +1,12 @@
+import { AuthenticationError, AuthorizationError } from '../../domain/errors/httpErrors.js';
+
 export const authorize = (allowedRoles) => (req, res, next) => {
   if (!req.user) {
-    return res.status(401).json({ message: 'Authentication required.' });
+    return next(new AuthenticationError('Authentication required.'));
   }
 
   if (!allowedRoles.includes(req.user.role)) {
-    return res.status(403).json({ message: 'Forbidden: Insufficient role privileges.' });
+    return next(new AuthorizationError('Forbidden: Insufficient role privileges.'));
   }
 
   next();

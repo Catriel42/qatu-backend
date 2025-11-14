@@ -1,6 +1,8 @@
 import SetUpStore from '../../application/use-cases/SetUpStore.js';
 import UpdateStore from '../../application/use-cases/UpdateStore.js';
+import StoreSerializer from '../serializers/StoreSerializer.js';
 import multer from 'multer';
+import { ValidationError, ConflictError } from '../../domain/errors/httpErrors.js';
 
 const MAX_LOGO_SIZE = 1 * 1024 * 1024;
 const MAX_BANNER_SIZE = 5 * 1024 * 1024;
@@ -14,18 +16,18 @@ class StoreController {
       const body = { ...req.body, sellerId };
 
       if (files.logo?.[0]) {
-        if (files.logo[0].size > MAX_LOGO_SIZE) return res.status(400).json({ message: 'Logo file too large (max 1MB).' });
+        if (files.logo[0].size > MAX_LOGO_SIZE) throw new ValidationError('Logo file too large (max 1MB).');
         body.logoUrl = `/uploads/store-assets/${files.logo[0].filename}`;
       }
       if (files.banner?.[0]) {
-        if (files.banner[0].size > MAX_BANNER_SIZE) return res.status(400).json({ message: 'Banner file too large (max 5MB).' });
+        if (files.banner[0].size > MAX_BANNER_SIZE) throw new ValidationError('Banner file too large (max 5MB).');
         body.bannerUrl = `/uploads/store-assets/${files.banner[0].filename}`;
       }
 
       const store = await SetUpStore.execute(body);
-      res.status(201).json(store);
+      res.status(201).json(StoreSerializer.serialize(store));
     } catch (err) {
-      if (err instanceof multer.MulterError) return res.status(400).json({ message: err.message });
+      if (err instanceof multer.MulterError) return next(new ValidationError(err.message));
       next(err);
     }
   }
@@ -39,19 +41,19 @@ class StoreController {
       const payload = { ...req.body };
 
       if (files.logo?.[0]) {
-        if (files.logo[0].size > MAX_LOGO_SIZE) return res.status(400).json({ message: 'Logo file too large (max 1MB).' });
+        if (files.logo[0].size > MAX_LOGO_SIZE) throw new ValidationError('Logo file too large (max 1MB).');
         payload.logoUrl = `/uploads/store-assets/${files.logo[0].filename}`;
       }
       if (files.banner?.[0]) {
-        if (files.banner[0].size > MAX_BANNER_SIZE) return res.status(400).json({ message: 'Banner file too large (max 5MB).' });
+        if (files.banner[0].size > MAX_BANNER_SIZE) throw new ValidationError('Banner file too large (max 5MB).');
         payload.bannerUrl = `/uploads/store-assets/${files.banner[0].filename}`;
       }
 
       const updated = await UpdateStore.execute({ sellerId, storeId: id, payload });
-      res.json(updated);
+      res.json(StoreSerializer.serialize(updated));
     } catch (err) {
-      if (err.code === 'DUPLICATE_NAME') return res.status(409).json({ message: err.message });
-      if (err.status) return res.status(err.status).json({ message: err.message });
+      if (err.code === 'DUPLICATE_NAME') return next(new ConflictError(err.message));
+      if (err.status) return next(err);
       next(err);
     }
   }
