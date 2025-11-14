@@ -1,4 +1,6 @@
 import CreateUser from '../../application/use-cases/CreateUser.js';
+import UserSerializer from '../serializers/UserSerializer.js';
+import { NotFoundError } from '../../domain/errors/httpErrors.js';
 
 class UserController {
   async create(req, res, next) {
@@ -8,7 +10,7 @@ class UserController {
       const { fullName } = req.body;
 
       const user = await CreateUser.execute({ iamId, email, fullName });
-      res.status(201).json(user);
+      res.status(201).json(UserSerializer.serialize(user));
     } catch (err) {
       next(err);
     }
@@ -18,9 +20,9 @@ class UserController {
     try {
       // The user object is attached to the request by the authenticate middleware
       if (!req.user) {
-        return res.status(404).json({ message: 'User not found.' });
+        throw new NotFoundError('User not found.');
       }
-      res.status(200).json(req.user);
+      res.status(200).json(UserSerializer.serialize(req.user));
     } catch (err) {
       next(err);
     }
