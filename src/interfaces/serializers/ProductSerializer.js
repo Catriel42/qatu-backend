@@ -7,21 +7,19 @@ const ProductSerializer = new Serializer('products', {
     'price',
     'category',
     'stock',
-    'sellerId',
     'imageUrls',
     'createdAt',
     'updatedAt',
   ],
   id: 'id',
-  // You can add relationships here if you need, for example:
-  // relationships: {
-  //   seller: {
-  //     type: 'users',
-  //     attributes: ['username', 'email'],
-  //   },
-  // },
-  // For more options, refer to the jsonapi-serializer documentation: https://github.com/SeyZ/jsonapi-serializer
-  // Cato
+  relationships: {
+    store: {
+      type: 'stores',
+      ref: 'store.id', // Indica dónde encontrar el ID de la tienda en el objeto producto
+      included: true,  // Asegura que la tienda se incluya en el array 'included'
+      attributes: ['name', 'logoUrl'], // Atributos de la tienda que queremos incluir
+    },
+  },
 });
 
 export default ProductSerializer;

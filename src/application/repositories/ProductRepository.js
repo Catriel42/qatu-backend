@@ -105,7 +105,7 @@ class ProductRepository {
   }
 
   async findById(productId) {
-    return Product.findByPk(productId, {
+    const product = await Product.findByPk(productId, {
       include: [
         {
           model: Store,
@@ -120,6 +120,16 @@ class ProductRepository {
         },
       ],
     });
+
+    if (!product) {
+      return null;
+    }
+
+    const plainProduct = product.get({ plain: true });
+    return {
+      ...plainProduct,
+      imageUrls: plainProduct.images ? plainProduct.images.map(img => img.image_url) : [],
+    };
   }
 
 
@@ -164,7 +174,15 @@ class ProductRepository {
       distinct: true,
     });
 
-    return { rows, count };
+    const productsWithImageUrls = rows.map(product => {
+      const plainProduct = product.get({ plain: true });
+      return {
+        ...plainProduct,
+        imageUrls: plainProduct.images ? plainProduct.images.map(img => img.image_url) : [],
+      };
+    });
+
+    return { rows: productsWithImageUrls, count };
   }
 
   async search(q, { page = 1, pageSize = 20, sort = 'created_at:desc' } = {}) {
@@ -211,7 +229,15 @@ class ProductRepository {
       subQuery: false,
     });
 
-    return { rows, count };
+    const productsWithImageUrls = rows.map(product => {
+      const plainProduct = product.get({ plain: true });
+      return {
+        ...plainProduct,
+        imageUrls: plainProduct.images ? plainProduct.images.map(img => img.image_url) : [],
+      };
+    });
+
+    return { rows: productsWithImageUrls, count };
   }
 }
 

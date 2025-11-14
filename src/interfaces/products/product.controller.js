@@ -37,7 +37,7 @@ class ProductController {
   async listPublic(req, res, next) {
     try {
       const result = await ListCatalogProducts.execute(req.query);
-      res.json(ProductSerializer.serialize(result));
+      res.json(ProductSerializer.serialize(result.data));
     } catch (err) {
       next(err);
     }
@@ -48,7 +48,7 @@ class ProductController {
     try {
       const { q, ...query } = req.query;
       const result = await SearchProducts.execute({ q, query });
-      res.json(ProductSerializer.serialize(result));
+      res.json(ProductSerializer.serialize(result.data));
     } catch (err) {
       next(err);
     }
@@ -57,7 +57,7 @@ class ProductController {
   async getById(req, res, next) {
     try {
       const result = await GetProductDetails.execute({ productId: req.params.id });
-      res.status(200).json(ProductSerializer.serialize(result));
+      res.status(200).json(ProductSerializer.serialize(result, { included: ['store'] }));
     } catch (err) {
       next(err);
     }

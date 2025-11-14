@@ -17,7 +17,20 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
-app.use(deserializeJsonApi);
+app.use(deserializeJsonApi); // Deserialize JSON:API requests
+
+// Middleware to log all JSON responses for debugging
+app.use((req, res, next) => {
+  const originalJson = res.json;
+  res.json = function(data) {
+    console.log('--- API RESPONSE BODY ---');
+    console.log(JSON.stringify(data, null, 2));
+    console.log('-------------------------');
+    originalJson.apply(res, arguments);
+  };
+  next();
+});
+
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
