@@ -8,6 +8,7 @@ import productRouter from './interfaces/products/product.router.js';
 import storeRouter from './interfaces/stores/store.router.js';
 import userRouter from './interfaces/users/user.router.js';
 import sellerRequestRouter from './interfaces/seller-requests/seller-request.router.js';
+import categoryRouter from './interfaces/categories/category.router.js';
 import { deserializeJsonApi } from './interfaces/middlewares/jsonapi.middleware.js';
 
 const app = express();
@@ -36,6 +37,7 @@ app.use(morgan('dev'));
 app.use('/uploads', express.static('uploads'));
 
 app.use('/api/products', productRouter);
+app.use('/api/categories', categoryRouter);
 app.use('/api/stores', storeRouter);
 app.use('/api/users', userRouter);
 app.use('/api/seller-requests', sellerRequestRouter);
