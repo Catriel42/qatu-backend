@@ -5,6 +5,7 @@ import SearchProducts from '../../application/use-cases/SearchProducts.js';
 import ListCatalogProducts from '../../application/use-cases/ListCatalogProducts.js';
 import GetProductDetails from '../../application/use-cases/GetProductDetails.js';
 import ProductSerializer from '../serializers/ProductSerializer.js';
+import UpdateProduct from '../../application/use-cases/UpdateProduct.js';
 import { AuthenticationError, NotFoundError, AuthorizationError } from '../../domain/errors/httpErrors.js';
 
 class ProductController {
@@ -43,7 +44,6 @@ class ProductController {
     }
   }
 
-  // US-016: Search Products by Keyword
   async search(req, res, next) {
     try {
       const { q, ...query } = req.query;
@@ -58,6 +58,27 @@ class ProductController {
     try {
       const result = await GetProductDetails.execute({ productId: req.params.id });
       res.status(200).json(ProductSerializer.serialize(result, { included: ['store'] }));
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async update(req, res, next) {
+    try {
+      const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
+      const { id: productId } = req.params;
+
+      if (!sellerId) {
+        throw new AuthenticationError('Unauthorized: missing seller id.');
+      }
+
+      const updatedProduct = await UpdateProduct.execute({
+        productId,
+        sellerId,
+        payload: req.body,
+      });
+
+      res.status(200).json(ProductSerializer.serialize(updatedProduct));
     } catch (err) {
       next(err);
     }

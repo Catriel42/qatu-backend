@@ -44,7 +44,10 @@ class ProductRepository {
     }
   }
 
-
+  async updateById(productId, payload) {
+    await Product.update(payload, { where: { id: productId } });
+    return this.findById(productId);
+  }
 
   async updateStatus(productId, status) {
     const product = await Product.findByPk(productId);
