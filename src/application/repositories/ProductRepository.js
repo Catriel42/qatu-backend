@@ -145,7 +145,8 @@ class ProductRepository {
     minPrice,
     maxPrice,
     minRating,
-    sort = 'created_at:desc'   
+    sort = 'created_at:desc',
+    includes = [] // Accept includes array
   } = {}) {
     const limit = Number(pageSize);
     const offset = (Number(page) - 1) * limit;
@@ -165,12 +166,18 @@ class ProductRepository {
 
     const [sortField, sortDir] = parseSort(sort, 'created_at:desc');
 
+    const sequelizeIncludes = [
+      { model: ProductImage, as: 'images', attributes: ['id', 'imageUrl', 'display_order', 'is_primary'] },
+      { model: Store, as: 'store', attributes: ['id', 'name', 'logoUrl', 'description'] }, // Include more store attributes
+    ];
+
+    if (includes.includes('category')) {
+      sequelizeIncludes.push({ model: Category, as: 'category', attributes: ['id', 'name'] });
+    }
+
     const { rows, count } = await Product.findAndCountAll({
       where,
-      include: [
-        { model: ProductImage, as: 'images', attributes: ['id', 'image_url', 'display_order', 'is_primary'] },
-        { model: Store, as: 'store', attributes: ['id', 'name'] },
-      ],
+      include: sequelizeIncludes,
       order: [[sortField, sortDir]],
       limit,
       offset,
@@ -178,11 +185,8 @@ class ProductRepository {
     });
 
     const productsWithImageUrls = rows.map(product => {
-      const plainProduct = product.get({ plain: true });
-      return {
-        ...plainProduct,
-        imageUrls: plainProduct.images ? plainProduct.images.map(img => img.image_url) : [],
-      };
+      product.imageUrls = product.images ? product.images.map(img => img.imageUrl) : [];
+      return product;
     });
 
     return { rows: productsWithImageUrls, count };
@@ -216,7 +220,7 @@ class ProductRepository {
         {
           model: ProductImage,
           as: 'images',
-          attributes: ['id', 'image_url', 'display_order', 'is_primary'],
+          attributes: ['id', 'imageUrl', 'display_order', 'is_primary'],
         },
         {
           model: Category,
@@ -233,11 +237,8 @@ class ProductRepository {
     });
 
     const productsWithImageUrls = rows.map(product => {
-      const plainProduct = product.get({ plain: true });
-      return {
-        ...plainProduct,
-        imageUrls: plainProduct.images ? plainProduct.images.map(img => img.image_url) : [],
-      };
+      product.imageUrls = product.images ? product.images.map(img => img.imageUrl) : [];
+      return product;
     });
 
     return { rows: productsWithImageUrls, count };

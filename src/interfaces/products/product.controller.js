@@ -37,8 +37,14 @@ class ProductController {
 
   async listPublic(req, res, next) {
     try {
-      const result = await ListCatalogProducts.execute(req.query);
-      res.json(ProductSerializer.serialize(result.data));
+      const { include, ...query } = req.query;
+      const includes = include ? include.split(',').map(i => i.trim()) : [];
+
+      const result = await ListCatalogProducts.execute({ ...query, includes });
+      
+      const serialized = ProductSerializer.serialize(result.data, { included: includes });
+      
+      res.json(serialized);
     } catch (err) {
       next(err);
     }

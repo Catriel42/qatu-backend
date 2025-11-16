@@ -1,25 +1,71 @@
+// backend/src/interfaces/serializers/ProductSerializer.js
+
 import { Serializer } from 'jsonapi-serializer';
 
-const ProductSerializer = new Serializer('products', {
-  attributes: [
-    'name',
-    'description',
-    'price',
-    'category',
-    'stock',
-    'imageUrls',
-    'createdAt',
-    'updatedAt',
-  ],
-  id: 'id',
-  relationships: {
-    store: {
-      type: 'stores',
-      ref: 'store.id', // Indica dónde encontrar el ID de la tienda en el objeto producto
-      included: true,  // Asegura que la tienda se incluya en el array 'included'
-      attributes: ['name', 'logoUrl'], // Atributos de la tienda que queremos incluir
-    },
-  },
-});
+// Función para crear el serializador con opciones dinámicas
+const createProductSerializer = (includedRelations = []) => {
+  const baseConfig = {
+    id: 'id',
+    attributes: [
+      'name',
+      'description',
+      'price',
+      'stock',
+      'createdAt',
+      'updatedAt',
+      'imageUrls' // Added back as a direct attribute
+    ],
+    keyForAttribute: 'camelCase',
+    pluralizeType: true,
+  };
 
-export default ProductSerializer;
+  // Solo incluir las relaciones solicitadas explícitamente
+  includedRelations.forEach(relation => {
+    if (!baseConfig.attributes.includes(relation)) {
+      baseConfig.attributes.push(relation);
+    }
+  });
+
+  // Configurar cada relación solo si está en includedRelations
+  if (includedRelations.includes('store')) {
+    baseConfig.store = {
+      ref: 'id',
+      included: true,
+      attributes: ['name', 'logoUrl', 'description']
+    };
+  }
+
+  // Removed the 'images' relationship configuration block
+
+  if (includedRelations.includes('category')) {
+    baseConfig.category = {
+      ref: 'id',
+      included: true,
+      attributes: ['name']
+    };
+  }
+
+  // Mapeo de tipos
+  baseConfig.typeForAttribute = (attribute) => {
+    switch (attribute) {
+      case 'store':
+        return 'stores';
+      case 'category':
+        return 'categories';
+      // Removed the 'images' case
+      default:
+        return attribute;
+    }
+  };
+
+  return new Serializer('products', baseConfig);
+};
+
+// Exportar la función en lugar del serializador
+export default {
+  serialize: (data, options = {}) => {
+    const includes = options.included || [];
+    const serializer = createProductSerializer(includes);
+    return serializer.serialize(data);
+  }
+};
