@@ -24,6 +24,7 @@ const router = Router();
 
 router.post(
   '/',
+  // Auth middleware for route protection
   authenticate,
   upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]),
   validate(createStoreSchema),
@@ -32,6 +33,7 @@ router.post(
 
 router.patch(
   '/:id',
+  // Auth middleware for route protection
   authenticate,
   upload.fields([{ name: 'logo', maxCount: 1 }, { name: 'banner', maxCount: 1 }]),
   validate(updateStoreSchema),

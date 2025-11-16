@@ -10,6 +10,7 @@ const router = Router();
 // Endpoint para que un administrador obtenga todas las solicitudes de vendedor
 router.get(
   '/',
+  // Auth middleware for route protection
   authenticate,
   authorize(['admin']),
   SellerRequestController.list
@@ -18,6 +19,7 @@ router.get(
 // Endpoint para que un comprador cree una solicitud de vendedor
 router.post(
   '/',
+  // Auth middleware for route protection
   authenticate,
   authorize(['buyer']),
   validate(createSellerRequestSchema),
@@ -27,6 +29,7 @@ router.post(
 // Endpoint para que un administrador revise una solicitud de vendedor
 router.patch(
   '/:id/review',
+  // Auth middleware for route protection
   authenticate,
   authorize(['admin']),
   validate(reviewSellerRequestSchema),
