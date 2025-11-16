@@ -1,6 +1,7 @@
 import admin from 'firebase-admin';
 import { AuthenticationError } from '../../domain/errors/httpErrors.js';
 
+// Middleware to verify Firebase ID token to Register/Authenticate requests
 export const verifyToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;

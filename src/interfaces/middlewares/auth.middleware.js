@@ -26,7 +26,6 @@ export const authenticate = async (req, res, next) => {
     const decodedToken = await admin.auth().verifyIdToken(idToken);
     const iamId = decodedToken.uid;
 
-    // FIX: Use the correct snake_case column name 'iam_id' for the where clause
     let user = await UserRepository.findByColumn('iam_id', iamId);
 
     if (!user) {
