@@ -1,0 +1,19 @@
+# Logs
+*.log
+
+# Docker build artifacts
+*.tar
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.development
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/

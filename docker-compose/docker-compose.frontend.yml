@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: qatu-frontend
+    expose:
+      - "80"
+    networks:
+      - front-end
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Load Balancer con Nginx
+  lb:
+    image: nginx:alpine
+    container_name: qatu-lb
+    ports:
+      - "8443:443"
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend
+    networks:
+      - front-end
+      - back-end
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  front-end:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+  back-end:
+    name: devops-docker_back-end
+    external: true
