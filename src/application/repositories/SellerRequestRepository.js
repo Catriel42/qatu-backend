@@ -15,8 +15,14 @@ class SellerRequestRepository {
     return SellerRequest.findByPk(id);
   }
 
-  async findAll() {
-    return SellerRequest.findAll();
+  async findAll(options = {}) {
+    const queryOptions = {
+      order: [['createdAt', 'DESC']],
+    };
+    if (options.include && options.include.includes('user')) {
+      queryOptions.include = [{ model: User, as: 'user' }];
+    }
+    return SellerRequest.findAll(queryOptions);
   }
 
   async updateStatus(id, status, rejectionReason = null, reviewedBy = null) {
