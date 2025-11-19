@@ -3,6 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './infrastructure/database/index.js';
 import productRouter from './interfaces/products/product.router.js';
 import storeRouter from './interfaces/stores/store.router.js';
@@ -10,6 +12,9 @@ import userRouter from './interfaces/users/user.router.js';
 import sellerRequestRouter from './interfaces/seller-requests/seller-request.router.js';
 import categoryRouter from './interfaces/categories/category.router.js';
 import { deserializeJsonApi } from './interfaces/middlewares/jsonapi.middleware.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -34,7 +39,7 @@ app.use((req, res, next) => {
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(morgan('dev'));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api/products', productRouter);
 app.use('/api/categories', categoryRouter);
