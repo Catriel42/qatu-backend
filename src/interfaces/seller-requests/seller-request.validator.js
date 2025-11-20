@@ -10,7 +10,7 @@ export const reviewSellerRequestSchema = Joi.object({
   status: Joi.string().valid('approved', 'rejected').required(),
   rejectionReason: Joi.string().when('status', {
     is: 'rejected',
-    then: Joi.string().min(10).required(),
+    then: Joi.string().min(1).required(),
     otherwise: Joi.string().allow('', null),
   }),
 });

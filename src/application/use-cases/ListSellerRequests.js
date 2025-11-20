@@ -5,8 +5,8 @@ class ListSellerRequests {
     this.sellerRequestRepository = sellerRequestRepository;
   }
 
-  async execute() {
-    return await this.sellerRequestRepository.findAll();
+  async execute(options = {}) {
+    return await this.sellerRequestRepository.findAll(options);
   }
 }
 
