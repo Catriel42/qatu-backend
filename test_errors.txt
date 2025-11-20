@@ -1,0 +1,248 @@
+﻿
+> backend@1.0.0 test
+> node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand tests/product_update.test.js
+
+  console.log
+    [DB CONFIG] {
+      via: 'CONFIG_OBJECT',
+      host: 'aws-1-us-east-1.pooler.supabase.com',
+      port: '6543',
+      db: 'postgres',
+      user: 'postgres.rutowgkwewybymkimnkd',
+      ssl: undefined,
+      schema: 'qatu-database'
+    }
+
+      at src/infrastructure/database/index.js:21:9
+
+node.exe : (node:18736) 
+ExperimentalWarning: VM Modules is an 
+experimental feature and might change at 
+any time
+En línea: 1 Carácter: 1
++ & "C:\Program Files\nodejs/node.exe" 
+"C:\Program Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: 
+    ((node:18736) Ex...nge at any time:Str  
+  ing) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommand 
+   Error
+ 
+(Use `node --trace-warnings ...` to show 
+where the warning was created)
+  console.log
+    Database connection established
+
+      at connectDB (src/infrastructure/database/index.js:78:13)
+
+  console.log
+    Ô£à Database connection closed
+
+      at disconnectDB (src/infrastructure/database/index.js:92:13)
+
+FAIL tests/product_update.test.js (8.056 s)
+  PATCH /api/products/:id
+    ├ù should update product details 
+successfully when owner requests (685 ms)
+    ├ù should return 403 if non-owner tries 
+to update (639 ms)
+    ├ù should return 404 if product does 
+not exist (637 ms)
+    ├ù should validate input fields (635 ms)
+    ├ù should handle image uploads (add new 
+image) (666 ms)
+
+  ÔùÅ PATCH /api/products/:id ÔÇ║ should 
+update product details successfully when 
+owner requests
+
+
+
+    [0m [90m 72 |[39m
+     [90m 73 |[39m     
+beforeEach([36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 74 |[39m     
+    product [33m=[39m [36mawait[39m 
+[33mProduct[39m[33m.[39mcreate({
+     [90m    |[39m                   
+[31m[1m^[22m[39m
+     [90m 75 |[39m             
+name[33m:[39m [32m'Original 
+Product'[39m[33m,[39m
+     [90m 76 |[39m             
+description[33m:[39m [32m'Original 
+Description'[39m[33m,[39m
+     [90m 77 |[39m             
+price[33m:[39m 
+[35m100.00[39m[33m,[39m[0m
+
+      at Query.run (node_modules/sequelize/s
+rc/dialects/postgres/query.js:76:25)
+      at node_modules/sequelize/src/sequeliz
+e.js:650:28
+      at PostgresQueryInterface.insert (node
+_modules/sequelize/src/dialects/abstract/que
+ry-interface.js:795:21)
+      at Product.save (node_modules/sequeliz
+e/src/model.js:4154:35)
+      at Function.create (node_modules/seque
+lize/src/model.js:2305:12)
+      at Object.<anonymous> 
+(tests/product_update.test.js:74:19)
+
+  ÔùÅ PATCH /api/products/:id ÔÇ║ should 
+return 403 if non-owner tries to update
+
+
+
+    [0m [90m 72 |[39m
+     [90m 73 |[39m     
+beforeEach([36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 74 |[39m     
+    product [33m=[39m [36mawait[39m 
+[33mProduct[39m[33m.[39mcreate({
+     [90m    |[39m                   
+[31m[1m^[22m[39m
+     [90m 75 |[39m             
+name[33m:[39m [32m'Original 
+Product'[39m[33m,[39m
+     [90m 76 |[39m             
+description[33m:[39m [32m'Original 
+Description'[39m[33m,[39m
+     [90m 77 |[39m             
+price[33m:[39m 
+[35m100.00[39m[33m,[39m[0m
+
+      at Query.run (node_modules/sequelize/s
+rc/dialects/postgres/query.js:76:25)
+      at node_modules/sequelize/src/sequeliz
+e.js:650:28
+      at PostgresQueryInterface.insert (node
+_modules/sequelize/src/dialects/abstract/que
+ry-interface.js:795:21)
+      at Product.save (node_modules/sequeliz
+e/src/model.js:4154:35)
+      at Function.create (node_modules/seque
+lize/src/model.js:2305:12)
+      at Object.<anonymous> 
+(tests/product_update.test.js:74:19)
+
+  ÔùÅ PATCH /api/products/:id ÔÇ║ should 
+return 404 if product does not exist
+
+
+
+    [0m [90m 72 |[39m
+     [90m 73 |[39m     
+beforeEach([36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 74 |[39m     
+    product [33m=[39m [36mawait[39m 
+[33mProduct[39m[33m.[39mcreate({
+     [90m    |[39m                   
+[31m[1m^[22m[39m
+     [90m 75 |[39m             
+name[33m:[39m [32m'Original 
+Product'[39m[33m,[39m
+     [90m 76 |[39m             
+description[33m:[39m [32m'Original 
+Description'[39m[33m,[39m
+     [90m 77 |[39m             
+price[33m:[39m 
+[35m100.00[39m[33m,[39m[0m
+
+      at Query.run (node_modules/sequelize/s
+rc/dialects/postgres/query.js:76:25)
+      at node_modules/sequelize/src/sequeliz
+e.js:650:28
+      at PostgresQueryInterface.insert (node
+_modules/sequelize/src/dialects/abstract/que
+ry-interface.js:795:21)
+      at Product.save (node_modules/sequeliz
+e/src/model.js:4154:35)
+      at Function.create (node_modules/seque
+lize/src/model.js:2305:12)
+      at Object.<anonymous> 
+(tests/product_update.test.js:74:19)
+
+  ÔùÅ PATCH /api/products/:id ÔÇ║ should 
+validate input fields
+
+
+
+    [0m [90m 72 |[39m
+     [90m 73 |[39m     
+beforeEach([36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 74 |[39m     
+    product [33m=[39m [36mawait[39m 
+[33mProduct[39m[33m.[39mcreate({
+     [90m    |[39m                   
+[31m[1m^[22m[39m
+     [90m 75 |[39m             
+name[33m:[39m [32m'Original 
+Product'[39m[33m,[39m
+     [90m 76 |[39m             
+description[33m:[39m [32m'Original 
+Description'[39m[33m,[39m
+     [90m 77 |[39m             
+price[33m:[39m 
+[35m100.00[39m[33m,[39m[0m
+
+      at Query.run (node_modules/sequelize/s
+rc/dialects/postgres/query.js:76:25)
+      at node_modules/sequelize/src/sequeliz
+e.js:650:28
+      at PostgresQueryInterface.insert (node
+_modules/sequelize/src/dialects/abstract/que
+ry-interface.js:795:21)
+      at Product.save (node_modules/sequeliz
+e/src/model.js:4154:35)
+      at Function.create (node_modules/seque
+lize/src/model.js:2305:12)
+      at Object.<anonymous> 
+(tests/product_update.test.js:74:19)
+
+  ÔùÅ PATCH /api/products/:id ÔÇ║ should 
+handle image uploads (add new image)
+
+
+
+    [0m [90m 72 |[39m
+     [90m 73 |[39m     
+beforeEach([36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 74 |[39m     
+    product [33m=[39m [36mawait[39m 
+[33mProduct[39m[33m.[39mcreate({
+     [90m    |[39m                   
+[31m[1m^[22m[39m
+     [90m 75 |[39m             
+name[33m:[39m [32m'Original 
+Product'[39m[33m,[39m
+     [90m 76 |[39m             
+description[33m:[39m [32m'Original 
+Description'[39m[33m,[39m
+     [90m 77 |[39m             
+price[33m:[39m 
+[35m100.00[39m[33m,[39m[0m
+
+      at Query.run (node_modules/sequelize/s
+rc/dialects/postgres/query.js:76:25)
+      at node_modules/sequelize/src/sequeliz
+e.js:650:28
+      at PostgresQueryInterface.insert (node
+_modules/sequelize/src/dialects/abstract/que
+ry-interface.js:795:21)
+      at Product.save (node_modules/sequeliz
+e/src/model.js:4154:35)
+      at Function.create (node_modules/seque
+lize/src/model.js:2305:12)
+      at Object.<anonymous> 
+(tests/product_update.test.js:74:19)
+
+Test Suites: 1 failed, 1 total
+Tests:       5 failed, 5 total
+Snapshots:   0 total
+Time:        8.126 s, estimated 9 s
+Ran all test suites matching 
+/tests\\product_update.test.js/i.

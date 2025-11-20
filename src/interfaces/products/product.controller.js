@@ -41,9 +41,9 @@ class ProductController {
       const includes = include ? include.split(',').map(i => i.trim()) : [];
 
       const result = await ListCatalogProducts.execute({ ...query, includes });
-      
+
       const serialized = ProductSerializer.serialize(result.data, { included: includes });
-      
+
       res.json(serialized);
     } catch (err) {
       next(err);
@@ -78,10 +78,13 @@ class ProductController {
         throw new AuthenticationError('Unauthorized: missing seller id.');
       }
 
+      const imageUrls = req.files ? req.files.map(file => `/uploads/product-assets/${file.filename}`) : [];
+
       const updatedProduct = await UpdateProduct.execute({
         productId,
         sellerId,
         payload: req.body,
+        imageUrls,
       });
 
       res.status(200).json(ProductSerializer.serialize(updatedProduct));

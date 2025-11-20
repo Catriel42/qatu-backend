@@ -44,9 +44,34 @@ class ProductRepository {
     }
   }
 
-  async updateById(productId, payload) {
-    await Product.update(payload, { where: { id: productId } });
-    return this.findById(productId);
+  async updateById(productId, payload, imageUrls = []) {
+    const transaction = await db.sequelize.transaction();
+    try {
+      await Product.update(payload, { where: { id: productId }, transaction });
+
+      if (imageUrls && imageUrls.length > 0) {
+        const currentImageCount = await ProductImage.count({ where: { productId }, transaction });
+
+        if (currentImageCount + imageUrls.length > 5) {
+          throw new Error('Cannot add more images. Maximum 5 images allowed per product.');
+        }
+
+        const images = imageUrls.map((url, index) => ({
+          productId: productId,
+          imageUrl: url,
+          displayOrder: currentImageCount + index,
+          isPrimary: false,
+        }));
+
+        await ProductImage.bulkCreate(images, { transaction });
+      }
+
+      await transaction.commit();
+      return this.findById(productId);
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   async updateStatus(productId, status) {

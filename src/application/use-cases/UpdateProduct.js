@@ -6,7 +6,7 @@ import {
 } from '../../domain/errors/httpErrors.js';
 
 class UpdateProduct {
-  async execute({ productId, sellerId, payload }) {
+  async execute({ productId, sellerId, payload, imageUrls }) {
     if (!productId || !sellerId) {
       throw new ValidationError('Product ID and Seller ID are required.');
     }
@@ -38,7 +38,8 @@ class UpdateProduct {
 
     const updatedProduct = await ProductRepository.updateById(
       productId,
-      updateData
+      updateData,
+      imageUrls
     );
     return updatedProduct;
   }
