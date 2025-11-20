@@ -27,15 +27,22 @@ const createProductSerializer = (includedRelations = []) => {
   });
 
   // Configurar cada relación solo si está en includedRelations
+  // Configurar cada relación solo si está en includedRelations
   if (includedRelations.includes('store')) {
     baseConfig.store = {
       ref: 'id',
       included: true,
-      attributes: ['name', 'logoUrl', 'description']
+      attributes: ['name', 'logoUrl', 'description', 'sellerId']
     };
   }
 
-  // Removed the 'images' relationship configuration block
+  if (includedRelations.includes('images')) {
+    baseConfig.images = {
+      ref: 'id',
+      included: true,
+      attributes: ['imageUrl', 'displayOrder', 'isPrimary']
+    };
+  }
 
   if (includedRelations.includes('category')) {
     baseConfig.category = {
@@ -52,7 +59,8 @@ const createProductSerializer = (includedRelations = []) => {
         return 'stores';
       case 'category':
         return 'categories';
-      // Removed the 'images' case
+      case 'images':
+        return 'product_images';
       default:
         return attribute;
     }

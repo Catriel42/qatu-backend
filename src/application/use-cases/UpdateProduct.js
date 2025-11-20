@@ -6,7 +6,7 @@ import {
 } from '../../domain/errors/httpErrors.js';
 
 class UpdateProduct {
-  async execute({ productId, sellerId, payload, imageUrls }) {
+  async execute({ productId, sellerId, payload, imageUrls, imagesToDelete = [] }) {
     if (!productId || !sellerId) {
       throw new ValidationError('Product ID and Seller ID are required.');
     }
@@ -32,14 +32,15 @@ class UpdateProduct {
       }
     }
 
-    if (Object.keys(updateData).length === 0) {
-      throw new ValidationError('No valid fields provided for update.');
+    if (Object.keys(updateData).length === 0 && imageUrls.length === 0 && imagesToDelete.length === 0) {
+      throw new ValidationError('No valid fields or images provided for update.');
     }
 
     const updatedProduct = await ProductRepository.updateById(
       productId,
       updateData,
-      imageUrls
+      imageUrls,
+      imagesToDelete
     );
     return updatedProduct;
   }
