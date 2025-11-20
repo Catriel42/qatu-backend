@@ -6,7 +6,7 @@ import ListCatalogProducts from '../../application/use-cases/ListCatalogProducts
 import GetProductDetails from '../../application/use-cases/GetProductDetails.js';
 import ProductSerializer from '../serializers/ProductSerializer.js';
 import UpdateProduct from '../../application/use-cases/UpdateProduct.js';
-import { AuthenticationError, NotFoundError, AuthorizationError } from '../../domain/errors/httpErrors.js';
+import { AuthenticationError, NotFoundError, AuthorizationError, ValidationError } from '../../domain/errors/httpErrors.js';
 
 class ProductController {
   async create(req, res, next) {
@@ -41,9 +41,9 @@ class ProductController {
       const includes = include ? include.split(',').map(i => i.trim()) : [];
 
       const result = await ListCatalogProducts.execute({ ...query, includes });
-      
+
       const serialized = ProductSerializer.serialize(result.data, { included: includes });
-      
+
       res.json(serialized);
     } catch (err) {
       next(err);
@@ -63,7 +63,7 @@ class ProductController {
   async getById(req, res, next) {
     try {
       const result = await GetProductDetails.execute({ productId: req.params.id });
-      res.status(200).json(ProductSerializer.serialize(result, { included: ['store'] }));
+      res.status(200).json(ProductSerializer.serialize(result, { included: ['store', 'images'] }));
     } catch (err) {
       next(err);
     }
@@ -71,6 +71,10 @@ class ProductController {
 
   async update(req, res, next) {
     try {
+      console.log('=== UPDATE PRODUCT REQUEST ===');
+      console.log('Body:', req.body);
+      console.log('Files:', req.files);
+
       const sellerId = req.user?.id || req.headers['x-dev-seller-id'];
       const { id: productId } = req.params;
 
@@ -78,14 +82,34 @@ class ProductController {
         throw new AuthenticationError('Unauthorized: missing seller id.');
       }
 
+      const imageUrls = req.files ? req.files.map(file => `/uploads/product-assets/${file.filename}`) : [];
+
+      // Parse imagesToDelete if it exists
+      let imagesToDelete = [];
+      if (req.body.imagesToDelete) {
+        console.log('imagesToDelete raw:', req.body.imagesToDelete);
+        try {
+          imagesToDelete = JSON.parse(req.body.imagesToDelete);
+          console.log('imagesToDelete parsed:', imagesToDelete);
+        } catch (error) {
+          console.error('Failed to parse imagesToDelete:', error);
+          throw new ValidationError('Invalid imagesToDelete format. Must be valid JSON array.');
+        }
+      }
+
+      console.log('Calling UpdateProduct with:', { productId, sellerId, imageUrls, imagesToDelete });
+
       const updatedProduct = await UpdateProduct.execute({
         productId,
         sellerId,
         payload: req.body,
+        imageUrls,
+        imagesToDelete,
       });
 
       res.status(200).json(ProductSerializer.serialize(updatedProduct));
     } catch (err) {
+      console.error('Error in update controller:', err);
       next(err);
     }
   }

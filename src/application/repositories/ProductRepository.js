@@ -1,5 +1,7 @@
 import { Op } from 'sequelize';
 import db from '../../domain/models/index.js';
+import fs from 'fs/promises';
+import path from 'path';
 
 const { Product, ProductImage, Store, Category } = db;
 
@@ -44,9 +46,62 @@ class ProductRepository {
     }
   }
 
-  async updateById(productId, payload) {
-    await Product.update(payload, { where: { id: productId } });
-    return this.findById(productId);
+  async updateById(productId, payload, imageUrls = [], imagesToDelete = []) {
+    const transaction = await db.sequelize.transaction();
+    try {
+      if (Object.keys(payload).length > 0) {
+        await Product.update(payload, { where: { id: productId }, transaction });
+      }
+      if (imagesToDelete && imagesToDelete.length > 0) {
+        const imagesToRemove = await ProductImage.findAll({
+          where: {
+            id: imagesToDelete,
+            productId: productId
+          },
+          transaction
+        });
+
+        for (const image of imagesToRemove) {
+          try {
+            const filePath = path.join(process.cwd(), image.imageUrl);
+            await fs.unlink(filePath);
+          } catch (fileError) {
+            console.error(`Failed to delete file ${image.imageUrl}:`, fileError.message);
+          }
+        }
+
+        await ProductImage.destroy({
+          where: {
+            id: imagesToDelete,
+            productId: productId
+          },
+          transaction
+        });
+      }
+
+      if (imageUrls && imageUrls.length > 0) {
+        const currentImageCount = await ProductImage.count({ where: { productId }, transaction });
+
+        if (currentImageCount + imageUrls.length > 5) {
+          throw new Error('Cannot add more images. Maximum 5 images allowed per product.');
+        }
+
+        const images = imageUrls.map((url, index) => ({
+          productId: productId,
+          imageUrl: url,
+          displayOrder: currentImageCount + index,
+          isPrimary: false,
+        }));
+
+        await ProductImage.bulkCreate(images, { transaction });
+      }
+
+      await transaction.commit();
+      return this.findById(productId);
+    } catch (error) {
+      await transaction.rollback();
+      throw error;
+    }
   }
 
   async updateStatus(productId, status) {
@@ -113,7 +168,7 @@ class ProductRepository {
         {
           model: Store,
           as: 'store',
-          attributes: ['id', 'name', 'logo_url'],
+          attributes: ['id', 'name', 'logoUrl', 'sellerId'],
         },
         {
           model: ProductImage,
