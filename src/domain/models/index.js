@@ -6,8 +6,9 @@ import Category from './Category.js';
 import Product from './Product.js';
 import ProductImage from './ProductImage.js';
 import SellerRequest from './SellerRequest.js';
+import AuditLog from './AuditLog.js';
 
-const models = { User, Store, Category, Product, ProductImage, SellerRequest };
+const models = { User, Store, Category, Product, ProductImage, SellerRequest, AuditLog };
 
 /**
  * Associations (según tu ERD):
@@ -67,6 +68,12 @@ Product.hasMany(ProductImage, {
 ProductImage.belongsTo(Product, {
   foreignKey: 'productId',
   as: 'product',
+});
+
+// AuditLog belongsTo User (admin)
+AuditLog.belongsTo(User, {
+  foreignKey: 'userId',
+  as: 'user',
 });
 
 const db = { ...models, sequelize };
