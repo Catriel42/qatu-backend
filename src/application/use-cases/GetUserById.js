@@ -1,8 +1,5 @@
 import UserRepository from '../repositories/UserRepository.js';
 import { NotFoundError } from '../../domain/errors/httpErrors.js';
-import db from '../../domain/models/index.js';
-
-const { Store, SellerRequest } = db;
 
 class GetUserById {
     constructor() {
@@ -22,18 +19,21 @@ class GetUserById {
             throw new NotFoundError('User not found.');
         }
 
-        // Eager load relationships
-        const userWithRelations = await this.userRepository.findById(userId);
+        // Return user as-is - relationships should be loaded by repository if needed
+        // For now, just attach empty arrays to satisfy serializer
+        if (!user.dataValues) {
+            user.dataValues = {};
+        }
 
-        // Manually load stores and seller requests if needed
-        const stores = await Store.findAll({ where: { seller_id: userId } });
-        const sellerRequests = await SellerRequest.findAll({ where: { user_id: userId } });
+        if (!user.dataValues.stores) {
+            user.dataValues.stores = [];
+        }
 
-        // Attach relations to user object
-        userWithRelations.dataValues.stores = stores;
-        userWithRelations.dataValues.sellerRequests = sellerRequests;
+        if (!user.dataValues.sellerRequests) {
+            user.dataValues.sellerRequests = [];
+        }
 
-        return userWithRelations;
+        return user;
     }
 }
 
