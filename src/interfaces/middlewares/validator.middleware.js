@@ -1,10 +1,9 @@
 // This middleware validates the request against Joi schemas.
 // Can validate body, query, params, or a combination
-export const validate = (schemas) => (req, res, next) => {
+export const validate = (...args) => (req, res, next) => {
   // Support legacy single schema format: validate(schema, 'body')
-  if (arguments.length === 2 && typeof arguments[1] === 'string') {
-    const schema = schemas;
-    const target = arguments[1];
+  if (args.length === 2 && typeof args[1] === 'string') {
+    const [schema, target] = args;
     const { error } = schema.validate(req[target]);
     if (error) {
       return res.status(400).json({
@@ -16,6 +15,7 @@ export const validate = (schemas) => (req, res, next) => {
   }
 
   // New format: validate({ body: schema, query: schema2, params: schema3 })
+  const [schemas] = args;
   const errors = [];
 
   if (schemas.body) {
