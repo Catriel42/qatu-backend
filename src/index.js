@@ -13,6 +13,8 @@ import sellerRequestRouter from './interfaces/seller-requests/seller-request.rou
 import categoryRouter from './interfaces/categories/category.router.js';
 import adminUserRouter from './interfaces/admin/admin-user.router.js';
 import { deserializeJsonApi } from './interfaces/middlewares/jsonapi.middleware.js';
+import conversationRouter from './interfaces/conversations/conversation.router.js';
+import messageRouter from './interfaces/messages/message.router.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,9 +26,8 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
-app.use(deserializeJsonApi); // Deserialize JSON:API requests
+app.use(deserializeJsonApi); 
 
-// Middleware to log all JSON responses for debugging
 app.use((req, res, next) => {
   const originalJson = res.json;
   res.json = function (data) {
@@ -48,6 +49,9 @@ app.use('/api/stores', storeRouter);
 app.use('/api/users', userRouter);
 app.use('/api/seller-requests', sellerRequestRouter);
 app.use('/api/admin/users', adminUserRouter);
+app.use('/api/conversations', conversationRouter);
+app.use('/api/conversations', messageRouter);
+
 
 app.get('/', (_req, res) => {
   res.json({ name: 'QATU API', version: '1.0.0' });

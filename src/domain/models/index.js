@@ -1,4 +1,3 @@
-// src/domain/models/index.js
 import { sequelize } from '../../infrastructure/database/index.js';
 import User from './User.js';
 import Store from './Store.js';
@@ -7,8 +6,20 @@ import Product from './Product.js';
 import ProductImage from './ProductImage.js';
 import SellerRequest from './SellerRequest.js';
 import AuditLog from './AuditLog.js';
+import Conversation from './Conversation.js';
+import Message from './Message.js';
 
-const models = { User, Store, Category, Product, ProductImage, SellerRequest, AuditLog };
+const models = {
+  User,
+  Store,
+  Category,
+  Product,
+  ProductImage,
+  SellerRequest,
+  AuditLog,
+  Conversation,
+  Message,
+};
 
 /**
  * Associations (según tu ERD):
@@ -74,6 +85,38 @@ ProductImage.belongsTo(Product, {
 AuditLog.belongsTo(User, {
   foreignKey: 'userId',
   as: 'user',
+});
+
+// Conversations
+Conversation.belongsTo(User, {
+  foreignKey: 'buyerId',
+  as: 'buyer',
+});
+
+Conversation.belongsTo(User, {
+  foreignKey: 'sellerId',
+  as: 'seller',
+});
+
+Conversation.belongsTo(Product, {
+  foreignKey: 'productId',
+  as: 'product',
+});
+
+// Messages
+Message.belongsTo(Conversation, {
+  foreignKey: 'conversationId',
+  as: 'conversation',
+});
+
+Message.belongsTo(User, {
+  foreignKey: 'senderId',
+  as: 'sender',
+});
+
+Conversation.hasMany(Message, {
+  foreignKey: 'conversationId',
+  as: 'messages',
 });
 
 const db = { ...models, sequelize };
