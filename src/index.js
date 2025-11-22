@@ -11,6 +11,7 @@ import storeRouter from './interfaces/stores/store.router.js';
 import userRouter from './interfaces/users/user.router.js';
 import sellerRequestRouter from './interfaces/seller-requests/seller-request.router.js';
 import categoryRouter from './interfaces/categories/category.router.js';
+import adminUserRouter from './interfaces/admin/admin-user.router.js';
 import { deserializeJsonApi } from './interfaces/middlewares/jsonapi.middleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -28,7 +29,7 @@ app.use(deserializeJsonApi); // Deserialize JSON:API requests
 // Middleware to log all JSON responses for debugging
 app.use((req, res, next) => {
   const originalJson = res.json;
-  res.json = function(data) {
+  res.json = function (data) {
     console.log('--- API RESPONSE BODY ---');
     console.log(JSON.stringify(data, null, 2));
     console.log('-------------------------');
@@ -46,6 +47,7 @@ app.use('/api/categories', categoryRouter);
 app.use('/api/stores', storeRouter);
 app.use('/api/users', userRouter);
 app.use('/api/seller-requests', sellerRequestRouter);
+app.use('/api/admin/users', adminUserRouter);
 
 app.get('/', (_req, res) => {
   res.json({ name: 'QATU API', version: '1.0.0' });
