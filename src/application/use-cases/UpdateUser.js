@@ -19,20 +19,17 @@ class UpdateUser {
      * @returns {Promise<User>} Updated user
      */
     async execute({ userId, adminId, updates, ipAddress, userAgent }) {
-        // Fetch the user to update
         const user = await this.userRepository.findById(userId);
         if (!user) {
             throw new NotFoundError('User not found.');
         }
 
-        // Prevent admin from modifying their own role or isActive status
         if (userId === adminId) {
             if (updates.role !== undefined || updates.is_active !== undefined || updates.isActive !== undefined) {
                 throw new AuthorizationError('Admins cannot modify their own role or active status.');
             }
         }
 
-        // Store old values for audit
         const oldValues = {
             fullName: user.full_name,
             email: user.email,
@@ -43,21 +40,21 @@ class UpdateUser {
             isActive: user.is_active,
         };
 
-        // Normalize field names (handle both camelCase and snake_case)
         const normalizedUpdates = {};
-        if (updates.fullName !== undefined) normalizedUpdates.full_name = updates.fullName;
+        if (updates.fullName !== undefined) normalizedUpdates.fullName = updates.fullName;
         if (updates.email !== undefined) normalizedUpdates.email = updates.email;
         if (updates.role !== undefined) normalizedUpdates.role = updates.role;
         if (updates.phone !== undefined) normalizedUpdates.phone = updates.phone;
         if (updates.address !== undefined) normalizedUpdates.address = updates.address;
-        if (updates.profilePictureUrl !== undefined) normalizedUpdates.profile_picture_url = updates.profilePictureUrl;
-        if (updates.isActive !== undefined) normalizedUpdates.is_active = updates.isActive;
-        if (updates.is_active !== undefined) normalizedUpdates.is_active = updates.is_active;
+        if (updates.profilePictureUrl !== undefined) normalizedUpdates.profilePictureUrl = updates.profilePictureUrl;
+        if (updates.isActive !== undefined) normalizedUpdates.isActive = updates.isActive;
 
-        // Update the user
+        if (updates.full_name !== undefined) normalizedUpdates.fullName = updates.full_name;
+        if (updates.profile_picture_url !== undefined) normalizedUpdates.profilePictureUrl = updates.profile_picture_url;
+        if (updates.is_active !== undefined) normalizedUpdates.isActive = updates.is_active;
+
         const updatedUser = await this.userRepository.updateById(userId, normalizedUpdates);
 
-        // Calculate changes diff
         const changes = {};
         Object.keys(normalizedUpdates).forEach(key => {
             const oldKey = key === 'full_name' ? 'fullName' :
@@ -68,7 +65,6 @@ class UpdateUser {
             }
         });
 
-        // Log the action
         await this.auditLogRepository.create({
             userId: adminId,
             action: 'user_update',

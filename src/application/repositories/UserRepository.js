@@ -12,7 +12,6 @@ class UserRepository {
   }
 
   async findByIamId(iamId) {
-    // Fix: Use the correct snake_case column name
     return User.findOne({ where: { iam_id: iamId } });
   }
 
@@ -102,7 +101,7 @@ class UserRepository {
    * @returns {Promise<User>}
    */
   async setActive(userId, isActive) {
-    return this.updateById(userId, { is_active: isActive });
+    return this.updateById(userId, { isActive: isActive });
   }
 }
 
