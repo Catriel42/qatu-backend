@@ -1,0 +1,75 @@
+# Node modules
+node_modules
+npm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Tests y coverage
+tests
+coverage
+.nyc_output
+
+# Development files
+README.md
+.vscode
+.idea
+
+# Logs
+logs
+*.log
+
+# Uploads (se montarán como volumen)
+uploads/*
+!uploads/.gitkeep
+
+# Docker y CI/CD
+Dockerfile*
+docker-compose*
+.dockerignore
+.github
+.gitlab-ci.yml
+
+# Scripts de desarrollo y despliegue
+scripts
+devops
+docker-helper.sh
+
+# Archivos temporales y caché
+.cache
+.parcel-cache
+.npm
+.eslintcache
+
+# Testing
+jest.config.*
+jest.setup.*
+tests/
+coverage/
+.nyc_output/
+
+# IDE y Editores
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Sistema Operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# OS files
+.DS_Store
+Thumbs.db
