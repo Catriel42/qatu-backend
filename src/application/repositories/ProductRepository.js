@@ -118,7 +118,7 @@ class ProductRepository {
     {
       page = 1,
       pageSize = 20,
-      status = 'active',
+      status = null,
       q,
       categoryId,
       sort = 'created_at:desc',
@@ -150,7 +150,7 @@ class ProductRepository {
         {
           model: ProductImage,
           as: 'images',
-          attributes: ['id', 'image_url', 'display_order', 'is_primary'],
+          attributes: ['id', 'imageUrl', 'display_order', 'is_primary'],
         },
       ],
       order: [[sortField, sortDir]],
@@ -159,7 +159,13 @@ class ProductRepository {
       distinct: true,
     });
 
-    return { rows, count };
+    const productsWithImageUrls = rows.map(product => {
+      const plainProduct = product.get({ plain: true });
+      plainProduct.imageUrls = plainProduct.images ? plainProduct.images.map(img => img.imageUrl) : [];
+      return plainProduct;
+    });
+
+    return { rows: productsWithImageUrls, count };
   }
 
   async findById(productId) {

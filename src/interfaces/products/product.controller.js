@@ -29,7 +29,7 @@ class ProductController {
       if (!sellerId) throw new AuthenticationError('Unauthorized');
 
       const result = await ListMyProducts.execute({ sellerId, query: req.query });
-      res.json(ProductSerializer.serialize(result));
+      res.json(ProductSerializer.serialize(result.data));
     } catch (err) {
       next(err);
     }

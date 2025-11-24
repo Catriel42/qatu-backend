@@ -13,7 +13,8 @@ const createProductSerializer = (includedRelations = []) => {
       'stock',
       'createdAt',
       'updatedAt',
-      'imageUrls' // Added back as a direct attribute
+      'imageUrls', // Added back as a direct attribute
+      'status'
     ],
     keyForAttribute: 'camelCase',
     pluralizeType: true,

@@ -23,7 +23,7 @@ class UpdateProduct {
       );
     }
 
-    const allowedFields = ['name', 'description', 'price', 'stock', 'categoryId'];
+    const allowedFields = ['name', 'description', 'price', 'stock', 'categoryId', 'status'];
     const updateData = {};
 
     for (const field of allowedFields) {

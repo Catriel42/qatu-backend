@@ -11,7 +11,7 @@ class ListMyProducts {
     const { rows, count } = await ProductRepository.listBySeller(sellerId, {
       page,
       pageSize,
-      status: query.status || 'active',
+      status: query.status,
       q: query.q,
       categoryId: query.categoryId,
       sort: query.sort || 'created_at:desc',
