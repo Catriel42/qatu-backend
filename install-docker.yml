@@ -1,0 +1,230 @@
+---
+- name: Instalar Docker Engine en Ubuntu Server
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars:
+    docker_apt_key_url: "https://download.docker.com/linux/ubuntu/gpg"
+    docker_apt_repository: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    docker_packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+
+  pre_tasks:
+    - name: Verificar sistema operativo
+      fail:
+        msg: "Este playbook solo soporta Ubuntu"
+      when: ansible_distribution != "Ubuntu"
+
+    - name: Mostrar información del sistema
+      debug:
+        msg: |
+          Sistema detectado:
+          - Distribución: {{ ansible_distribution }} {{ ansible_distribution_version }}
+          - Arquitectura: {{ ansible_architecture }}
+          - Kernel: {{ ansible_kernel }}
+          - Usuario actual: {{ ansible_user }}
+
+  tasks:
+    - name: Actualizar caché de apt
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      register: apt_update
+
+    - name: Mostrar resultado de actualización
+      debug:
+        msg: "Caché de apt actualizado: {{ apt_update.changed }}"
+
+    - name: Instalar dependencias requeridas
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+          - software-properties-common
+          - python3-pip
+          - python3-docker
+        state: present
+      register: dependencies_installed
+
+    - name: Mostrar instalación de dependencias
+      debug:
+        msg: "Dependencias instaladas exitosamente"
+      when: dependencies_installed.changed
+
+    - name: Eliminar instalación anterior de Docker
+      apt:
+        name:
+          - docker
+          - docker-engine
+          - docker.io
+          - containerd
+          - runc
+        state: absent
+        purge: yes
+      register: old_docker_removed
+      failed_when: false
+
+    - name: Mostrar eliminación de Docker anterior
+      debug:
+        msg: "Instalación anterior de Docker eliminada: {{ old_docker_removed.changed }}"
+      when: old_docker_removed.changed
+
+    - name: Crear directorio para llaves GPG
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Añadir clave GPG oficial de Docker
+      apt_key:
+        url: "{{ docker_apt_key_url }}"
+        state: present
+      register: gpg_key_added
+
+    - name: Mostrar resultado de clave GPG
+      debug:
+        msg: "Clave GPG de Docker añadida: {{ gpg_key_added.changed }}"
+      when: gpg_key_added.changed
+
+    - name: Añadir repositorio Docker
+      apt_repository:
+        repo: "{{ docker_apt_repository }}"
+        state: present
+        update_cache: yes
+      register: repository_added
+
+    - name: Mostrar resultado del repositorio
+      debug:
+        msg: "Repositorio de Docker añadido: {{ repository_added.changed }}"
+      when: repository_added.changed
+
+    - name: Instalar Docker Engine
+      apt:
+        name: "{{ docker_packages }}"
+        state: present
+      register: docker_installed
+
+    - name: Mostrar resultado de instalación
+      debug:
+        msg: "Docker Engine instalado: {{ docker_installed.changed }}"
+      when: docker_installed.changed
+
+    - name: Asegurar que el servicio Docker está iniciado
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      register: docker_service
+
+    - name: Mostrar estado del servicio Docker
+      debug:
+        msg: "Servicio Docker configurado: started={{ docker_service.changed }}, enabled=yes"
+
+    - name: Verificar instalación de Docker
+      command: docker --version
+      register: docker_version
+      changed_when: false
+
+    - name: Mostrar versión de Docker instalada
+      debug:
+        msg: "Versión de Docker: {{ docker_version.stdout }}"
+
+    - name: Verificar Docker Compose
+      command: docker compose version
+      register: docker_compose_version
+      changed_when: false
+
+    - name: Mostrar versión de Docker Compose
+      debug:
+        msg: "Versión de Docker Compose: {{ docker_compose_version.stdout }}"
+
+    - name: Añadir usuario actual al grupo docker
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
+      register: user_added
+
+    - name: Mostrar adición de usuario al grupo docker
+      debug:
+        msg: "Usuario {{ ansible_user }} añadido al grupo docker: {{ user_added.changed }}"
+      when: user_added.changed
+
+    - name: Crear directorio de configuración de Docker si no existe
+      file:
+        path: /etc/docker
+        state: directory
+        mode: '0755'
+
+    - name: Configurar daemon de Docker
+      copy:
+        content: |
+          {
+            "exec-opts": ["native.cgroupdriver=systemd"],
+            "log-driver": "json-file",
+            "log-opts": {
+              "max-size": "100m"
+            },
+            "storage-driver": "overlay2"
+          }
+        dest: /etc/docker/daemon.json
+        owner: root
+        group: root
+        mode: '0644'
+      register: daemon_configured
+
+    - name: Reiniciar servicio Docker para aplicar configuración
+      systemd:
+        name: docker
+        state: restarted
+      when: daemon_configured.changed
+
+    - name: Ejecutar contenedor de prueba hello-world
+      command: docker run --rm hello-world
+      register: docker_test
+      changed_when: "'Hello from Docker!' in docker_test.stdout"
+
+    - name: Mostrar resultado de prueba
+      debug:
+        msg: "Prueba de Docker completada exitosamente"
+      when: docker_test.changed
+
+    - name: Limpiar contenedor de prueba
+      command: docker system prune -f
+      register: docker_cleanup
+      changed_when: false
+
+  post_tasks:
+    - name: Verificar estado final del servicio Docker
+      systemd:
+        name: docker
+      register: final_status
+
+    - name: Mostrar resumen de la instalación
+      debug:
+        msg: |
+          Instalación de Docker Engine completada:
+          - Versión: {{ docker_version.stdout }}
+          - Servicio: {{ final_status.status.ActiveState }}
+          - Habilitado: {{ final_status.status.SubState }}
+          - Usuario en grupo docker: {{ ansible_user }}
+          - Repositorio: {{ docker_apt_repository }}
+
+    - name: Instrucciones post-instalación
+      debug:
+        msg: |
+          Siguientes pasos:
+          1. Cerrar sesión y volver a iniciar para aplicar los cambios de grupo
+          2. Verificar instalación con: docker --version
+          3. Probar con: docker run hello-world
+          4. Listar contenedores: docker ps
+          5. Listar imágenes: docker images
