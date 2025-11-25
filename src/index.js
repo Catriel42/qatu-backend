@@ -3,13 +3,21 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './infrastructure/database/index.js';
 import productRouter from './interfaces/products/product.router.js';
 import storeRouter from './interfaces/stores/store.router.js';
 import userRouter from './interfaces/users/user.router.js';
 import sellerRequestRouter from './interfaces/seller-requests/seller-request.router.js';
 import categoryRouter from './interfaces/categories/category.router.js';
+import adminUserRouter from './interfaces/admin/admin-user.router.js';
 import { deserializeJsonApi } from './interfaces/middlewares/jsonapi.middleware.js';
+import conversationRouter from './interfaces/conversations/conversation.router.js';
+import messageRouter from './interfaces/messages/message.router.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -18,12 +26,11 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
-app.use(deserializeJsonApi); // Deserialize JSON:API requests
+app.use(deserializeJsonApi); 
 
-// Middleware to log all JSON responses for debugging
 app.use((req, res, next) => {
   const originalJson = res.json;
-  res.json = function(data) {
+  res.json = function (data) {
     console.log('--- API RESPONSE BODY ---');
     console.log(JSON.stringify(data, null, 2));
     console.log('-------------------------');
@@ -34,13 +41,17 @@ app.use((req, res, next) => {
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(morgan('dev'));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/api/products', productRouter);
 app.use('/api/categories', categoryRouter);
 app.use('/api/stores', storeRouter);
 app.use('/api/users', userRouter);
 app.use('/api/seller-requests', sellerRequestRouter);
+app.use('/api/admin/users', adminUserRouter);
+app.use('/api/conversations', conversationRouter);
+app.use('/api/conversations', messageRouter);
+
 
 app.get('/', (_req, res) => {
   res.json({ name: 'QATU API', version: '1.0.0' });

@@ -20,4 +20,5 @@ export const updateProductSchema = Joi.object({
   price: Joi.number().positive().precision(2),
   stock: Joi.number().integer().min(0),
   categoryId: Joi.string().uuid().allow(null),
+  imagesToDelete: Joi.string().optional(),
 }).min(1);
