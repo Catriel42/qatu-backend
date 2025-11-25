@@ -1,70 +1,29 @@
-# Production-ready Node.js application container
-# Stage 1: Base build environment with all tools
-FROM node:18-alpine AS base
+# Build Stage
+FROM node:20-alpine AS build
 
-# Install system dependencies required for native modules
-RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    postgresql-client
-
-# Set working directory
 WORKDIR /app
 
-# Copy package configuration files
 COPY package*.json ./
 
-# Install all dependencies including development dependencies
-RUN npm ci --include=dev
+RUN npm install
 
-# Copy application source code
 COPY . .
 
-# Create non-root user for security compliance
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+# Run Stage
+FROM node:20-alpine AS production
 
-# Build application for production environment
-RUN npm run build
-
-# Stage 2: Minimal production runtime
-FROM node:18-alpine AS production
-
-# Install only runtime dependencies
-RUN apk add --no-cache \
-    postgresql-client \
-    curl  # Required for health checks
-
-# Create non-root user for production
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
-
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install only production dependencies
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/src ./src
+COPY --from=build /app/.env.template ./.env.template
+COPY --from=build /app/package.json ./package.json
 
-# Copy built application and required files from base stage
-COPY --from=base --chown=nodejs:nodejs /app/src ./src
-COPY --from=base --chown=nodejs:nodejs /app/uploads ./uploads
-COPY --from=base --chown=nodejs:nodejs /app/firebase-admin-sdk.json ./firebase-admin-sdk.json
-
-# Create and set permissions for log directory
-RUN mkdir -p logs && chown -R nodejs:nodejs logs uploads
-
-# Switch to non-root user
-USER nodejs
-
-# Expose application port
 EXPOSE 3000
 
-# Health check to verify application is responding
-# Tests root endpoint since curl is available and api/health may not exist
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:3000/ || exit 1
 
-# Start application process
-CMD ["node", "src/index.js"]
+ENV PORT=3000
+ENV NODE_ENV=production
+
+
+CMD ["npm", "start"]

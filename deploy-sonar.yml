@@ -1,0 +1,148 @@
+---
+- name: Desplegar SonarQube con PostgreSQL
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    sonar_container_name: "sonarqube"
+    sonar_image: "sonarqube:community"
+    sonar_host_port: "9000"
+    sonar_container_port: "9000"
+    postgres_container_name: "postgres-sonar"
+    postgres_user: "sonar"
+    postgres_password: "sonar"
+    network_name: "sonar-network"
+    volume_data: "sonarqube_data"
+    volume_logs: "sonarqube_logs"
+    volume_extensions: "sonarqube_extensions"
+
+  tasks:
+    - name: Verificar si PostgreSQL está corriendo
+      command: docker ps --filter "name={{ postgres_container_name }}" --format "table {{.Names}}\t{{.Status}}"
+      register: postgres_status
+      failed_when: "'{{ postgres_container_name }}' not in postgres_status.stdout"
+
+    - name: Mostrar estado de PostgreSQL
+      debug:
+        msg: "Estado PostgreSQL:\n{{ postgres_status.stdout }}"
+
+    - name: Crear volúmenes para SonarQube
+      docker_volume:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - "{{ volume_data }}"
+        - "{{ volume_logs }}"
+        - "{{ volume_extensions }}"
+      register: volumes_created
+
+    - name: Mostrar información de volúmenes creados
+      debug:
+        msg: "Volumen {{ item.item.name }} creado exitosamente"
+      loop: "{{ volumes_created.results }}"
+      when: item.changed
+
+    - name: Detener y eliminar contenedor SonarQube existente
+      docker_container:
+        name: "{{ sonar_container_name }}"
+        state: absent
+      register: container_removed
+      failed_when: false
+
+    - name: Desplegar contenedor SonarQube
+      docker_container:
+        name: "{{ sonar_container_name }}"
+        image: "{{ sonar_image }}"
+        state: started
+        restart_policy: always
+        ports:
+          - "{{ sonar_host_port }}:{{ sonar_container_port }}"
+        env:
+          SONAR_JDBC_URL: "jdbc:postgresql://{{ postgres_container_name }}:5432/sonar"
+          SONAR_JDBC_USERNAME: "{{ postgres_user }}"
+          SONAR_JDBC_PASSWORD: "{{ postgres_password }}"
+        volumes:
+          - "{{ volume_data }}:/opt/sonarqube/data"
+          - "{{ volume_logs }}:/opt/sonarqube/logs"
+          - "{{ volume_extensions }}:/opt/sonarqube/extensions"
+        networks:
+          - name: "{{ network_name }}"
+        ulimits:
+          - name: nofile
+            soft: 65536
+            hard: 65536
+        sysctls:
+          vm.max_map_count: 262144
+      register: sonar_result
+
+    - name: Mostrar resultado del despliegue de SonarQube
+      debug:
+        msg: |
+          Contenedor SonarQube desplegado exitosamente:
+          - Nombre: {{ sonar_result.container.Name }}
+          - ID: {{ sonar_result.container.Id }}
+          - Estado: {{ sonar_result.container.State.Status }}
+          - IP: {{ sonar_result.container.NetworkSettings.Networks[network_name].IPAddress }}
+
+    - name: Esperar a que SonarQube esté listo (puede tardar varios minutos)
+      uri:
+        url: "http://localhost:{{ sonar_host_port }}/api/system/status"
+        method: GET
+        status_code: 200
+        timeout: 30
+      register: sonar_status
+      retries: 20
+      delay: 30
+      until: sonar_status.status == 200
+
+    - name: Verificar estado del sistema SonarQube
+      uri:
+        url: "http://localhost:{{ sonar_host_port }}/api/system/status"
+        method: GET
+        status_code: 200
+      register: system_status
+
+    - name: Mostrar estado del sistema
+      debug:
+        msg: "Estado del sistema SonarQube: {{ system_status.json.status }}"
+
+    - name: Verificar logs de inicio de SonarQube
+      command: docker logs {{ sonar_container_name }} --tail 20
+      register: sonar_logs
+
+    - name: Mostrar logs de inicio
+      debug:
+        msg: "Logs de inicio:\n{{ sonar_logs.stdout }}"
+
+    - name: Probar conexión a base de datos desde SonarQube
+      command: |
+        docker exec {{ postgres_container_name }} psql -U {{ postgres_user }} -d sonar -c "SELECT count(*) FROM pg_tables WHERE schemaname = 'public';"
+      register: db_tables
+      retries: 5
+      delay: 10
+
+    - name: Mostrar información de tablas creadas por SonarQube
+      debug:
+        msg: "Tablas en base de datos sonar: {{ db_tables.stdout_lines[0] }}"
+
+  post_tasks:
+    - name: Resumen del despliegue
+      debug:
+        msg: |
+          Despliegue de SonarQube completado:
+          Contenedor: {{ sonar_container_name }}
+          Puerto de acceso: http://localhost:{{ sonar_host_port }}
+          Base de datos: PostgreSQL (sonar)
+          Usuario por defecto: admin / admin
+          Volúmenes creados: {{ volume_data }}, {{ volume_logs }}, {{ volume_extensions }}
+          Red: {{ network_name }}
+
+    - name: Instrucciones de acceso
+      debug:
+        msg: |
+          Acceso a SonarQube:
+          1. Abrir navegador en http://localhost:{{ sonar_host_port }}
+          2. Iniciar sesión con admin/admin
+          3. Cambiar contraseña en el primer inicio
+          4. Configurar proyectos y análisis de código

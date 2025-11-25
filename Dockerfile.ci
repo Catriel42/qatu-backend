@@ -1,0 +1,118 @@
+# Multi-stage Dockerfile para CI/CD con integración de versionamiento
+# Uso: docker build --build-arg BUILD_VERSION=DEV-2.1.0 -t backend:DEV-2.1.0 .
+
+# Build Stage
+FROM node:20-alpine AS build
+
+# Labels para información de build
+LABEL maintainer="DevOps Team"
+LABEL description="Backend Qatu Marketplace - Build Stage"
+
+# Argumentos de build
+ARG BUILD_VERSION=unknown
+ARG BUILD_DATE=unknown
+ARG VCS_REF=unknown
+
+# Variables de entorno
+ENV NODE_ENV=production
+ENV APP_VERSION=${BUILD_VERSION}
+
+# Directorio de trabajo
+WORKDIR /app
+
+# Instalar dependencias de sistema necesarias
+RUN apk add --no-cache \
+    git \
+    python3 \
+    make \
+    g++
+
+# Copiar archivos de configuración primero para mejor cache
+COPY package*.json ./
+
+# Instalar dependencias
+RUN npm ci --only=production && npm cache clean --force
+
+# Copiar código fuente
+COPY . .
+
+# Copiar información de versión
+RUN echo "BUILD_VERSION=${BUILD_VERSION}" > .build-info
+RUN echo "BUILD_DATE=${BUILD_DATE}" >> .build-info
+RUN echo "VCS_REF=${VCS_REF}" >> .build-info
+RUN echo "NODE_ENV=production" >> .build-info
+
+# Verificar instalación
+RUN echo "Node.js: $(node --version)" && \
+    echo "npm: $(npm --version)" && \
+    echo "Versión de la aplicación: ${APP_VERSION}"
+
+# Ejecutar tests si existen (opcional)
+RUN if [ -d "test" ] || [ -d "tests" ]; then \
+        echo "Ejecutando tests..." && \
+        npm test; \
+    else \
+        echo "No se encontraron tests, omitiendo..."; \
+    fi
+
+# Run Stage
+FROM node:20-alpine AS production
+
+# Labels para información del contenedor
+LABEL maintainer="DevOps Team"
+LABEL description="Backend Qatu Marketplace"
+LABEL version=${APP_VERSION}
+LABEL org.label-schema.build-date=${BUILD_DATE}
+LABEL org.label-schema.vcs-ref=${VCS_REF}
+LABEL org.label-schema.schema-version="1.0"
+
+# Argumentos de build
+ARG BUILD_VERSION=unknown
+ARG BUILD_DATE=unknown
+ARG VCS_REF=unknown
+
+# Variables de entorno
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV APP_VERSION=${BUILD_VERSION}
+
+# Directorio de trabajo
+WORKDIR /app
+
+# Crear usuario no-root para seguridad
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodejs -u 1001
+
+# Copiar desde stage de build
+COPY --from=build --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=build --chown=nodejs:nodejs /app/src ./src
+COPY --from=build --chown=nodejs:nodejs /app/.build-info ./.build-info
+COPY --from=build --chown=nodejs:nodejs /app/package.json ./package.json
+
+# Copiar archivos de configuración si existen
+COPY --from=build --chown=nodejs:nodejs /app/.env.template ./.env.template
+COPY --from=build --chown=nodejs:nodejs /app/jest.config.* ./
+COPY --from=build --chown=nodejs:nodejs /app/README.md ./README.md
+
+# Verificar permisos y estructura
+RUN ls -la && \
+    echo "Verificando versión de la aplicación..." && \
+    cat .build-info && \
+    echo "Validando estructura de directorios..." && \
+    test -d src || (echo "Error: Directorio src no encontrado" && exit 1)
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })" || exit 1
+
+# Exponer puerto
+EXPOSE 3000
+
+# Cambiar a usuario no-root
+USER nodejs
+
+# Comando para iniciar la aplicación
+CMD ["npm", "start"]
+
+# Metadata adicional
+ONBUILD RUN echo "Build timestamp: $(date)" && echo "Built by: $USER"
