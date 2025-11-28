@@ -8,6 +8,7 @@ import SellerRequest from './SellerRequest.js';
 import AuditLog from './AuditLog.js';
 import Conversation from './Conversation.js';
 import Message from './Message.js';
+import ProductRating from './ProductRating.js';
 
 const models = {
   User,
@@ -19,6 +20,7 @@ const models = {
   AuditLog,
   Conversation,
   Message,
+  ProductRating,
 };
 
 /**
@@ -79,6 +81,26 @@ Product.hasMany(ProductImage, {
 ProductImage.belongsTo(Product, {
   foreignKey: 'productId',
   as: 'product',
+});
+
+// Product 1..* ProductRating
+Product.hasMany(ProductRating, {
+  foreignKey: 'productId',
+  as: 'ratings',
+});
+ProductRating.belongsTo(Product, {
+  foreignKey: 'productId',
+  as: 'product',
+});
+
+// User 1..* ProductRating (as buyer)
+User.hasMany(ProductRating, {
+  foreignKey: 'buyerId',
+  as: 'ratings',
+});
+ProductRating.belongsTo(User, {
+  foreignKey: 'buyerId',
+  as: 'buyer',
 });
 
 // AuditLog belongsTo User (admin)
