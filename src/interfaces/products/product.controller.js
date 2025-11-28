@@ -7,6 +7,8 @@ import GetProductDetails from '../../application/use-cases/GetProductDetails.js'
 import ProductSerializer from '../serializers/ProductSerializer.js';
 import UpdateProduct from '../../application/use-cases/UpdateProduct.js';
 import { AuthenticationError, NotFoundError, AuthorizationError, ValidationError } from '../../domain/errors/httpErrors.js';
+import ListProductRatings from '../../application/use-cases/ListProductRatings.js';
+import ProductRatingSerializer from '../serializers/ProductRatingSerializer.js';
 
 class ProductController {
   async create(req, res, next) {
@@ -64,6 +66,33 @@ class ProductController {
     try {
       const result = await GetProductDetails.execute({ productId: req.params.id });
       res.status(200).json(ProductSerializer.serialize(result, { included: ['store', 'images'] }));
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async listRatings(req, res, next) {
+    try {
+      const { id: productId } = req.params;
+      const { page, limit, sortBy, sortOrder } = req.query;
+
+      const result = await ListProductRatings.execute({
+        productId,
+        page: page || 1,
+        limit: limit || 10,
+        sortBy: sortBy || 'createdAt',
+        sortOrder: sortOrder || 'DESC',
+      });
+
+      const serializedData = ProductRatingSerializer.serialize(result.ratings);
+
+      serializedData.meta = {
+        total: result.total,
+        totalPages: result.totalPages,
+        currentPage: result.currentPage,
+      };
+
+      res.status(200).json(serializedData);
     } catch (err) {
       next(err);
     }
@@ -137,3 +166,4 @@ class ProductController {
 }
 
 export default new ProductController();
+

@@ -33,6 +33,9 @@ router.get('/search', ProductController.search);
 //Obtencion de productos
 router.get('/:id', validate(getProductDetailsSchema, 'params'), ProductController.getById);
 
+// US-031: View Product Ratings
+router.get('/:id/ratings', ProductController.listRatings);
+
 // Crear producto
 // Auth middleware for route protection
 router.post('/', authenticate, authorize(['seller']), upload.array('images', 10), validate(createProductSchema), ProductController.create);
