@@ -35,22 +35,23 @@ class MessageController {
       const { conversationId } = req.params;
 
       const result = await ListConversationMessages.execute({
-        userId,
+        userId: req.user.id,
         conversationId,
         query: req.query,
       });
 
       const serializer = new MessageSerializer();
-      const payload = serializer.serialize(result.data);
+      const response = serializer.serialize(result.data);
 
-      payload.meta = {
-        page: result.page,
-        pageSize: result.pageSize,
-        total: result.total,
-        totalPages: result.totalPages,
-      };
-
-      res.json(payload);
+      res.json({
+        ...response,
+        meta: {
+          page: result.page,
+          pageSize: result.pageSize,
+          total: result.total,
+          totalPages: result.totalPages,
+        },
+      });
     } catch (err) {
       next(err);
     }

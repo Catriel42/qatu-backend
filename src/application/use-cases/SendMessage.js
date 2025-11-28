@@ -37,6 +37,28 @@ class SendMessage {
       message.createdAt
     );
 
+    // Publish to MQTT
+    try {
+      const { mqttService } = await import('../../infrastructure/mqtt/mqttService.js');
+      const recipientId = conversation.buyerId === senderId ? conversation.sellerId : conversation.buyerId;
+
+      // Publish to recipient's topic
+      mqttService.publish(`qatu/user/${recipientId}/messages`, {
+        conversationId,
+        message
+      });
+
+      // Also publish to sender's topic so they see it in other tabs/devices
+      mqttService.publish(`qatu/user/${senderId}/messages`, {
+        conversationId,
+        message
+      });
+
+    } catch (error) {
+      console.error('Failed to publish MQTT message:', error);
+      // Don't fail the request if MQTT fails
+    }
+
     return { message, conversation };
   }
 }
