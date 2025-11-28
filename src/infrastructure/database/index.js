@@ -53,12 +53,14 @@ if (useUrl) {
     password,
     dialectOptions: {
       ssl: { require: true, rejectUnauthorized: false },
+      searchPath: env.DB_SCHEMA,
     },
   });
 } else {
-  const dialectOptions = env.DB_SSL
-    ? { ssl: { require: true, rejectUnauthorized: false } }
-    : undefined;
+  const dialectOptions = {
+    ...(env.DB_SSL ? { ssl: { require: true, rejectUnauthorized: false } } : {}),
+    searchPath: env.DB_SCHEMA,
+  };
 
   sequelize = new Sequelize({
     ...commonOptions,
@@ -89,9 +91,9 @@ export async function connectDB(opts = {}) {
 export async function disconnectDB() {
   try {
     await sequelize.close();
-    console.log('✅ Database connection closed');
+    console.log('Database connection closed');
   } catch (err) {
-    console.error('❌ Error closing the database connection:', err);
+    console.error('Error closing the database connection:', err);
     throw err;
   }
 }
