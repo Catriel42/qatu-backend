@@ -22,6 +22,8 @@ const upload = multer({ storage });
 
 const router = Router();
 
+router.get('/mine', authenticate, StoreController.getMyStore);
+
 router.post(
   '/',
   // Auth middleware for route protection

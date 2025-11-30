@@ -2,7 +2,8 @@ import SetUpStore from '../../application/use-cases/SetUpStore.js';
 import UpdateStore from '../../application/use-cases/UpdateStore.js';
 import StoreSerializer from '../serializers/StoreSerializer.js';
 import multer from 'multer';
-import { ValidationError, ConflictError } from '../../domain/errors/httpErrors.js';
+import { ValidationError, ConflictError, NotFoundError } from '../../domain/errors/httpErrors.js';
+import StoreRepository from '../../application/repositories/StoreRepository.js';
 
 const MAX_LOGO_SIZE = 1 * 1024 * 1024;
 const MAX_BANNER_SIZE = 5 * 1024 * 1024;
@@ -28,6 +29,21 @@ class StoreController {
       res.status(201).json(StoreSerializer.serialize(store));
     } catch (err) {
       if (err instanceof multer.MulterError) return next(new ValidationError(err.message));
+      next(err);
+    }
+  }
+
+  async getMyStore(req, res, next) {
+    try {
+      const sellerId = req.user.id;
+      const store = await StoreRepository.findBySellerId(sellerId);
+
+      if (!store) {
+        throw new NotFoundError('No store found for the current user.');
+      }
+
+      res.status(200).json(StoreSerializer.serialize(store));
+    } catch (err) {
       next(err);
     }
   }
@@ -60,3 +76,4 @@ class StoreController {
 }
 
 export default new StoreController();
+
