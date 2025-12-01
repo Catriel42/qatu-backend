@@ -7,6 +7,8 @@ const StoreSerializer = new Serializer('stores', {
     'sellerId',
     'logoUrl',
     'bannerUrl',
+    'shippingPolicy',
+    'returnPolicy',
     'createdAt',
     'updatedAt',
   ],
