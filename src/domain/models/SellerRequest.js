@@ -1,7 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 import { sequelize } from '../../infrastructure/database/index.js';
 
-class SellerRequest extends Model {}
+class SellerRequest extends Model { }
 
 SellerRequest.init({
   id: {
@@ -16,18 +16,6 @@ SellerRequest.init({
       model: 'users',
       key: 'id',
     }
-  },
-  storeName: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
-  },
-  storeDescription: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
-  businessDocuments: {
-    type: DataTypes.JSONB,
-    allowNull: true,
   },
   status: {
     type: DataTypes.ENUM('pending', 'approved', 'rejected'),

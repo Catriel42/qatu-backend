@@ -9,7 +9,7 @@ class CreateSellerRequest {
     this.storeRepository = StoreRepository;
   }
 
-  async execute({ userId, storeName, storeDescription, businessDocuments }) {
+  async execute({ userId }) {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       const error = new Error('User not found.');
@@ -39,9 +39,6 @@ class CreateSellerRequest {
 
     const newRequest = await this.sellerRequestRepository.create({
       userId,
-      storeName,
-      storeDescription,
-      businessDocuments,
       status: 'pending',
     });
 

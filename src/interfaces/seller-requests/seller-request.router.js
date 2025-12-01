@@ -16,6 +16,13 @@ router.get(
   SellerRequestController.list
 );
 
+// Endpoint para que un usuario obtenga su propia solicitud
+router.get(
+  '/my-request',
+  authenticate,
+  SellerRequestController.getMyRequest
+);
+
 // Endpoint para que un comprador cree una solicitud de vendedor
 router.post(
   '/',
