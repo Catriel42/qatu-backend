@@ -11,6 +11,10 @@ const MAX_BANNER_SIZE = 5 * 1024 * 1024;
 class StoreController {
   async create(req, res, next) {
     try {
+      console.log('=== CREATE STORE REQUEST ===');
+      console.log('Body:', req.body);
+      console.log('Files:', req.files);
+
       const sellerId = req.user.id;
 
       const files = req.files || {};
@@ -24,6 +28,8 @@ class StoreController {
         if (files.banner[0].size > MAX_BANNER_SIZE) throw new ValidationError('Banner file too large (max 5MB).');
         body.bannerUrl = `/uploads/store-assets/${files.banner[0].filename}`;
       }
+
+      console.log('Body sent to use case:', body);
 
       const store = await SetUpStore.execute(body);
       res.status(201).json(StoreSerializer.serialize(store));
