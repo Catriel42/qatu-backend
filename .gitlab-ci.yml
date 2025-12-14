@@ -7,11 +7,6 @@ deploy-backend:
         -J spanish-b@devops.jala.university \
         -o "StrictHostKeyChecking=no" \
         ubuntu@10.27.5.178 \
-        'bash -s' <<'ENDSSH'
-cd /home/ubuntu/backend
-./scripts/deploy_inactive.sh
-./scripts/validate.sh $(cat active_deploy.txt)
-./scripts/switch.sh
-ENDSSH
+        "cd /home/ubuntu/backend && ./scripts/deploy_inactive.sh && ./scripts/validate.sh \$(cat active_deploy.txt) && ./scripts/switch.sh"
 
 
