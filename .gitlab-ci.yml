@@ -3,8 +3,24 @@ deploy-backend:
   tags:
     - ubuntu
   script:
-    - ssh -i /home/cato/.ssh/id_rsa \
-      -J spanish-b@devops.jala.university \
-      -o "StrictHostKeyChecking=no" \
-      ubuntu@10.27.5.178 \
-      'cd /home/ubuntu/backend && ./scripts/deploy_inactive.sh && ./scripts/validate.sh $(cat active_deploy.txt) && ./scripts/switch.sh''
+    - |
+      # Conectarse al servidor remoto vía SSH con jump host
+      ssh -i /home/cato/.ssh/id_rsa \
+          -J spanish-b@devops.jala.university \
+          -o "StrictHostKeyChecking=no" \
+          ubuntu@10.27.5.178 \
+          'bash -s' <<'ENDSSH'
+
+      # Ir al directorio del backend
+      cd /home/ubuntu/backend
+
+      # Desplegar la versión inactiva
+      ./scripts/deploy_inactive.sh
+
+      # Validar cuál es el deploy activo
+      ./scripts/validate.sh $(cat active_deploy.txt)
+
+      # Cambiar tráfico Blue-Green
+      ./scripts/switch.sh
+ENDSSH
+
