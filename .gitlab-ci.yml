@@ -1,6 +1,6 @@
 deploy-backend:
   stage: deploy
-  image: alpine:latest  # Alpine incluye `openssh-client` y es ligero
+  image: alpine:latest  
   before_script:
     - apk add --no-cache openssh-client
     - mkdir -p ~/.ssh
