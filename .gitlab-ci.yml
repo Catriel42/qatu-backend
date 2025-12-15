@@ -1,6 +1,20 @@
 deploy-backend:
   stage: deploy
-  tags:
-    - ubuntu
+  image: alpine:latest  # Alpine incluye `openssh-client` y es ligero
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H devops.jala.university >> ~/.ssh/known_hosts
+    - ssh-keyscan -H 10.27.5.178 >> ~/.ssh/known_hosts
   script:
-    - ssh -i /home/cato/.ssh/id_rsa -J spanish-b@devops.jala.university -o "StrictHostKeyChecking=no" ubuntu@10.27.5.178 "cd /home/ubuntu/backend && ./scripts/deploy_inactive.sh && ./scripts/validate.sh \$(cat active_deploy.txt) && ./scripts/switch.sh"
+    - |
+      ssh -J spanish-b@devops.jala.university \
+          -o StrictHostKeyChecking=yes \
+          -o UserKnownHostsFile=~/.ssh/known_hosts \
+          ubuntu@10.27.5.178 \
+          'cd /home/ubuntu/backend && \
+           ./scripts/deploy_inactive.sh && \
+           ./scripts/validate.sh "$(cat active_deploy.txt)" && \
+           ./scripts/switch.sh'
