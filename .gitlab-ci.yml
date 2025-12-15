@@ -1,7 +1,7 @@
-stages:
-  - deploy
 deploy-backend:
   stage: deploy
+  tags:
+    - ubuntu  # ✅ Debe coincidir con el tag del runner (el que ves en la imagen: "ubuntu")
   image: ubuntu:22.04
   variables:
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
@@ -10,25 +10,16 @@ deploy-backend:
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    # Solo escaneamos el bastion porque es público. La IP privada 10.x.x.x no es accesible desde aquí.
     - ssh-keyscan -H devops.jala.university >> ~/.ssh/known_hosts
   script:
-    - echo "=== Probando conexión SSH ==="
-    # Usamos el Bastion (-J) para llegar a la IP privada.
-    - ssh -i ~/.ssh/id_rsa -J spanish-b@devops.jala.university -o StrictHostKeyChecking=no ubuntu@10.27.5.178 "echo 'SSH OK'"
-    - echo "=== Iniciando despliegue Blue-Green ==="
     - |
-      ssh -i ~/.ssh/id_rsa -J spanish-b@devops.jala.university -o StrictHostKeyChecking=no ubuntu@10.27.5.178 <<'EOF'
+      ssh -i ~/.ssh/id_rsa \
+          -J spanish-b@devops.jala.university \
+          -o StrictHostKeyChecking=accept-new \
+          ubuntu@10.27.5.178 <<'EOF'
         set -e
-        echo "-> Desplegando versión inactiva..."
-        # Asegúrate de usar rutas absolutas o relativas correctas
-        /home/ubuntu/backend/scripts/deploy_inactive.sh
-        echo "-> Validando despliegue..."
-        if ! /home/ubuntu/backend/scripts/validate.sh "$(cat /home/ubuntu/backend/active_deploy.txt)"; then
-          echo "Validación fallida, abortando switch"
-          exit 1
-        fi
-        echo "-> Cambiando despliegue activo..."
-        /home/ubuntu/backend/scripts/switch.sh
-        echo "Despliegue Blue-Green completado exitosamente"
+        cd /home/ubuntu/backend
+        ./scripts/deploy_inactive.sh
+        ./scripts/validate.sh "$(cat active_deploy.txt)"
+        ./scripts/switch.sh
       EOF
