@@ -3,4 +3,4 @@ deploy-backend:
  tags:
  - ubuntu
  script:
- - ssh -i /home/cato/.ssh/id_rsa -J spanishb@devops.jala.university -o "StrictHostKeyChecking no" ubuntu@10.27.5.178 'cd /home/ubuntu/backend && ./scripts/deploy_inactive.sh && ./scripts/validate.sh $(cat active_deploy.txt) && ./scripts/switch.sh'
+ - ssh -i /home/gitlab-runner/.ssh/id_rsa -J spanishb@devops.jala.university -o "StrictHostKeyChecking no" ubuntu@10.27.5.178 'cd /home/ubuntu/backend && ./scripts/deploy_inactive.sh && ./scripts/validate.sh $(cat active_deploy.txt) && ./scripts/switch.sh'
