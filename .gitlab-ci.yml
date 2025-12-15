@@ -7,25 +7,17 @@ deploy-backend:
     - ubuntu
   image: ubuntu:22.04
   variables:
-    # Tu clave privada ya debe estar en GitLab CI como variable protegida
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
 
   before_script:
-    # Instalar cliente SSH
     - apt-get update && apt-get install -y openssh-client
-    # Configurar clave SSH
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-    # Agregar hosts a known_hosts
     - ssh-keyscan -H devops.jala.university >> ~/.ssh/known_hosts
     - ssh-keyscan -H 10.27.5.178 >> ~/.ssh/known_hosts
 
   script:
-    # Conexión SSH y ejecución de scripts Blue-Green con logging
     - echo "=== Iniciando despliegue Blue-Green ==="
     - ssh -i ~/.ssh/id_rsa -J spanish-b@devops.jala.university -o "StrictHostKeyChecking=no" ubuntu@10.27.5.178 \
-      "echo '>>> Ejecutando deploy_inactive.sh'; ./scripts/deploy_inactive.sh && \
-       echo '>>> Ejecutando validate.sh'; ./scripts/validate.sh \$(cat active_deploy.txt) && \
-       echo '>>> Ejecutando switch.sh'; ./scripts/switch.sh && \
-       echo '=== Despliegue finalizado con éxito ==='"
+      "cd /home/ubuntu/backend && ./scripts/deploy_inactive.sh && ./scripts/validate.sh \$(cat active_deploy.txt) && ./scripts/switch.sh"
