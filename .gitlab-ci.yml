@@ -10,6 +10,7 @@ deploy-backend:
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
 
   before_script:
+    # Instala SSH client y prepara claves
     - apt-get update && apt-get install -y openssh-client
     - mkdir -p ~/.ssh
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
@@ -18,6 +19,24 @@ deploy-backend:
     - ssh-keyscan -H 10.27.5.178 >> ~/.ssh/known_hosts
 
   script:
+    - echo "=== Probando conexión SSH ==="
+    - ssh -i ~/.ssh/id_rsa -J spanish-b@devops.jala.university -o StrictHostKeyChecking=no ubuntu@10.27.5.178 "echo 'SSH OK'"
+
     - echo "=== Iniciando despliegue Blue-Green ==="
-    - ssh -i ~/.ssh/id_rsa -J spanish-b@devops.jala.university -o "StrictHostKeyChecking=no" ubuntu@10.27.5.178 \
-      "cd /home/ubuntu/backend && ./scripts/deploy_inactive.sh && ./scripts/validate.sh \$(cat active_deploy.txt) && ./scripts/switch.sh"
+    # Comandos remotos ejecutados paso a paso con control de errores
+    - |
+      ssh -i ~/.ssh/id_rsa -J spanish-b@devops.jala.university -o StrictHostKeyChecking=no ubuntu@10.27.5.178 <<'EOF'
+        set -e  # detiene si algún comando falla
+        echo "-> Desplegando versión inactiva..."
+        ./home/ubuntu/backend/scripts/deploy_inactive.sh
+
+        echo "-> Validando despliegue..."
+        if ! ./home/ubuntu/backend/scripts/validate.sh "$(cat /home/ubuntu/backend/active_deploy.txt)"; then
+          echo "Validación fallida, abortando switch"
+          exit 1
+        fi
+
+        echo "-> Cambiando despliegue activo..."
+        ./home/ubuntu/backend/scripts/switch.sh
+        echo "Despliegue Blue-Green completado exitosamente"
+      EOF
