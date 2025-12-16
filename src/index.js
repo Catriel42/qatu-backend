@@ -15,6 +15,7 @@ import adminUserRouter from './interfaces/admin/admin-user.router.js';
 import { deserializeJsonApi } from './interfaces/middlewares/jsonapi.middleware.js';
 import conversationRouter from './interfaces/conversations/conversation.router.js';
 import messageRouter from './interfaces/messages/message.router.js';
+import christmasRouter from './interfaces/christmas/christmas.router.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +27,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({ origin: CORS_ORIGIN }));
 app.use(express.json());
-app.use(deserializeJsonApi); 
+app.use(deserializeJsonApi);
 
 app.use((req, res, next) => {
   const originalJson = res.json;
@@ -51,6 +52,7 @@ app.use('/api/seller-requests', sellerRequestRouter);
 app.use('/api/admin/users', adminUserRouter);
 app.use('/api/conversations', conversationRouter);
 app.use('/api/conversations', messageRouter);
+app.use('/api/christmas', christmasRouter);
 
 
 app.get('/', (_req, res) => {
