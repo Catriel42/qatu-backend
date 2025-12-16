@@ -1,6 +1,65 @@
-deploy-backend:
- stage: deploy
- tags:
- - ubuntu
- script:
- - ssh -i /home/cato/.ssh/id_rsa -J spanish-b@devops.jala.university -o "StrictHostKeyChecking no" ubuntu@10.27.5.178 'cd /home/ubuntu/backend && ./scripts/deploy_inactive.sh && ./scripts/validate.sh $(cat active_deploy.txt) && ./scripts/switch.sh'
+stages:
+  - test
+  - build
+  - push
+  - trigger_deploy
+
+variables:
+  # Use the project's registry image path
+  DOCKER_IMAGE: $CI_REGISTRY_IMAGE
+  # Downstream project to trigger (Update if needed)
+  DOWNSTREAM_PROJECT: $CI_PROJECT_NAMESPACE/qatu-service
+
+# --- Test Stage ---
+test_backend:
+  stage: test
+  image: node:20-alpine
+  script:
+    - npm ci
+    - npm test
+  # Allow failure if tests are not yet fully set up, but ideally should be false
+  allow_failure: true
+
+# --- Build Stage ---
+build_backend:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - docker build -t $DOCKER_IMAGE:$CI_COMMIT_SHA .
+
+# --- Push Stage ---
+push_backend:
+  stage: push
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Pull the image built in previous stage (or rebuild if caching not shared)
+    - docker build -t $DOCKER_IMAGE:$CI_COMMIT_SHA .
+    - docker tag $DOCKER_IMAGE:$CI_COMMIT_SHA $DOCKER_IMAGE:latest
+    - docker tag $DOCKER_IMAGE:$CI_COMMIT_SHA $DOCKER_IMAGE:LTS
+    - docker push $DOCKER_IMAGE:$CI_COMMIT_SHA
+    - docker push $DOCKER_IMAGE:latest
+    - docker push $DOCKER_IMAGE:LTS
+  only:
+    - main
+
+# --- Trigger Deploy Stage ---
+trigger_service_deploy:
+  stage: trigger_deploy
+  trigger:
+    project: jala-university1/cohort-3/es.csdv-246.ga.t2.25.m2/sb/laboratories/catriel.pereira/qatu-service
+    branch: main
+  strategy: depend
+  only:
+    - main
