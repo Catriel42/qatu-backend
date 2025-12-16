@@ -3,11 +3,15 @@ import { jest } from '@jest/globals';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import request from 'supertest';
+import app from '../src/index.js';
+import ProductRepository from '../src/application/repositories/ProductRepository.js';
+import UserRepository from '../src/application/repositories/UserRepository.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Mock firebase-admin
+// Mock firebase-admin (Keep this as it is a 3rd party module)
 jest.unstable_mockModule('firebase-admin', () => ({
     default: {
         apps: [],
@@ -20,27 +24,6 @@ jest.unstable_mockModule('firebase-admin', () => ({
         })
     }
 }));
-
-// Mock ProductRepository
-jest.unstable_mockModule('../src/application/repositories/ProductRepository.js', () => ({
-    default: {
-        findById: jest.fn(),
-        updateById: jest.fn()
-    }
-}));
-
-// Mock UserRepository
-jest.unstable_mockModule('../src/application/repositories/UserRepository.js', () => ({
-    default: {
-        findByColumn: jest.fn()
-    }
-}));
-
-// Dynamic imports after mocks
-const request = (await import('supertest')).default;
-const { default: app } = await import('../src/index.js');
-const ProductRepository = (await import('../src/application/repositories/ProductRepository.js')).default;
-const UserRepository = (await import('../src/application/repositories/UserRepository.js')).default;
 
 describe('PATCH /api/products/:id', () => {
     const sellerId = 'seller-123';
@@ -86,16 +69,27 @@ describe('PATCH /api/products/:id', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        // Setup default mocks
-        UserRepository.findByColumn.mockImplementation(async (column, value) => {
+        // Spy on Repository methods
+        jest.spyOn(ProductRepository, 'findById').mockResolvedValue(mockProduct);
+        jest.spyOn(ProductRepository, 'updateById').mockResolvedValue({
+            ...mockProduct,
+            name: 'Updated Product',
+            price: '150.00'
+        });
+
+        jest.spyOn(UserRepository, 'findByColumn').mockImplementation(async (column, value) => {
             if (value === sellerToken) return mockSellerUser;
             if (value === otherToken) return mockOtherUser;
             return null;
         });
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it('should update product details successfully when owner requests', async () => {
-        ProductRepository.findById.mockResolvedValue(mockProduct);
+        // Mocks are already set in beforeEach, but can be overridden here if needed
         ProductRepository.updateById.mockResolvedValue({
             ...mockProduct,
             name: 'Updated Product',
