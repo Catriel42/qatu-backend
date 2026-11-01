@@ -6,7 +6,18 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const serviceAccount = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../firebase-admin-sdk.json'), 'utf8'));
+const serviceAccount = (() => {
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_JSON) {
+    return JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
+  }
+  const credPath = path.resolve(__dirname, '../../../firebase-admin-sdk.json');
+  if (!fs.existsSync(credPath)) {
+    throw new Error(
+      'Missing Firebase credentials: set GOOGLE_SERVICE_ACCOUNT_JSON or provide firebase-admin-sdk.json (see firebase-admin-sdk.example.json).'
+    );
+  }
+  return JSON.parse(fs.readFileSync(credPath, 'utf8'));
+})();
 
 // Initialize Firebase Admin SDK once
 if (!admin.apps.length) {
